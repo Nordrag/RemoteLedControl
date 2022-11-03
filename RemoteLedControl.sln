@@ -5,15 +5,13 @@ VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RemoteLedControl", "RemoteLedControl\RemoteLedControl.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ESP8266WiFi-1.0", "Libraries\ESP8266WiFi\1.0\ESP8266WiFi\ESP8266WiFi-1.0.vcxitems", "{5A6879DE-985D-4E90-B870-01BB6FC6F87F}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NTPClient-3.2.1", "Libraries\NTPClient\3.2.1\NTPClient\NTPClient-3.2.1.vcxitems", "{1D44C69B-C208-4856-B1FA-1523F3D8A56F}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ESP8266WebServer-1.0", "Libraries\ESP8266WebServer\1.0\ESP8266WebServer\ESP8266WebServer-1.0.vcxitems", "{A526357D-AB73-49C1-84E2-CFA25EB73063}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiFiManager-2.0.13-beta", "Libraries\WiFiManager\2.0.13-beta\WiFiManager\WiFiManager-2.0.13-beta.vcxitems", "{80B3E7C5-679F-4683-BD8A-735BDB3C2DF0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoJson-6.19.4", "Libraries\ArduinoJson\6.19.4\ArduinoJson\ArduinoJson-6.19.4.vcxitems", "{B4079890-135D-452B-8B34-6131678BFB09}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTTPClient-2.0.0", "Libraries\HTTPClient\2.0.0\HTTPClient\HTTPClient-2.0.0.vcxitems", "{32D243E0-B35F-42F2-B42A-4BBFB3E36358}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,13 +32,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Libraries\NTPClient\3.2.1\NTPClient\NTPClient-3.2.1.vcxitems*{1d44c69b-c208-4856-b1fa-1523f3d8a56f}*SharedItemsImports = 9
-		Libraries\ESP8266WiFi\1.0\ESP8266WiFi\ESP8266WiFi-1.0.vcxitems*{5a6879de-985d-4e90-b870-01bb6fc6f87f}*SharedItemsImports = 9
+		Libraries\HTTPClient\2.0.0\HTTPClient\HTTPClient-2.0.0.vcxitems*{32d243e0-b35f-42f2-b42a-4bbfb3e36358}*SharedItemsImports = 9
 		Libraries\WiFiManager\2.0.13-beta\WiFiManager\WiFiManager-2.0.13-beta.vcxitems*{80b3e7c5-679f-4683-bd8a-735bdb3c2df0}*SharedItemsImports = 9
-		Libraries\ESP8266WebServer\1.0\ESP8266WebServer\ESP8266WebServer-1.0.vcxitems*{a526357d-ab73-49c1-84e2-cfa25eb73063}*SharedItemsImports = 9
 		Libraries\ArduinoJson\6.19.4\ArduinoJson\ArduinoJson-6.19.4.vcxitems*{b4079890-135d-452b-8b34-6131678bfb09}*SharedItemsImports = 9
 		Libraries\ArduinoJson\6.19.4\ArduinoJson\ArduinoJson-6.19.4.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
-		Libraries\ESP8266WebServer\1.0\ESP8266WebServer\ESP8266WebServer-1.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
-		Libraries\ESP8266WiFi\1.0\ESP8266WiFi\ESP8266WiFi-1.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\HTTPClient\2.0.0\HTTPClient\HTTPClient-2.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\NTPClient\3.2.1\NTPClient\NTPClient-3.2.1.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\WiFiManager\2.0.13-beta\WiFiManager\WiFiManager-2.0.13-beta.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 	EndGlobalSection

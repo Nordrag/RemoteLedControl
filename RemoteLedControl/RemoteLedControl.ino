@@ -1,22 +1,17 @@
-#include <Uri.h>
-#include <ESP8266WebServerSecure.h>
+#include <WebServer.h>
+#include <HTTPClient.h>
 #include <NTPClient.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <WiFiUdp.h>
 #include "WifiConnector.h"
 #include "ArduinoJson.h"
 #include "DateTime.h"
+#include <WiFiUdp.h>
 
-//serial.print sends bl data
+const char* localHost = "https://localhost:7266/Devices";
+const char* azureServerBaseUrl = "https://arduinowebapi.azure-api.net/Devices";
 
 StaticJsonDocument<128> doc;
 const char* input;
 DeserializationError err;
-
-// Replace with your network credentials
-const char* ssid = "DIGI-e9gF";
-const char* password = "8MPyJHjv";
 
 String weekDays[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
@@ -32,7 +27,7 @@ bool hasTimerBeenSet = false;
 DateTime Now(2022, 10, 10, 12,0,0);
 DateTime timer(2022, 10, 10, 12, 0, 0);
 
-ESP8266WebServer server(80);
+WebServer server(80);
 
 void LedOn()
 {    
@@ -110,23 +105,67 @@ void setup() {
    
     //9600 for bt
     Serial.begin(115200);
-    // Initialize the output variables as outputs
-    timeClient.setTimeOffset(7200);
-     
-    pinMode(output4, OUTPUT);
-    digitalWrite(output4, HIGH);
-       
-    WifiConnector connector;
-    //connector.ResetSettings();
-    connector.TryConnect("AutoConnectAP", "password"); // password protected ap
 
-    if (!connector.GetConnected()) {
+    WiFiManager wMan;
+    WiFi.mode(WIFI_STA);
+   
+    //wMan.resetSettings();
+    bool res = wMan.autoConnect("AutoConnectAP", "password");
+
+    if (!res) {
         Serial.println("Failed to connect");
+        timeClient.setTimeOffset(7200);
         // ESP.restart();
     }
     else {
         //if you get here you have connected to the WiFi    
         Serial.println("connected...yeey :)");
+        
+        String ssid = wMan.getWiFiSSID();
+        String pw = wMan.getWiFiPass();             
+        HTTPClient client;
+        StaticJsonDocument<128> pRequestDoc;
+        JsonObject jObj = pRequestDoc.to<JsonObject>();      
+        String jResult;
+        jObj["id"] = 0;
+        jObj["deviceType"] = 0;
+        jObj["deviceName"] = "WaterPump";
+        jObj["ssid"] = ssid;
+        jObj["routerPassword"] = pw;
+        jObj["userID"] = 1;
+        serializeJson(pRequestDoc, jResult);
+        Serial.println(jResult);
+       
+        /*
+        String ssidPtr = "ssid=";
+        String andSign = "&";
+        String pwSign = "pw";     
+        //String res = azureServerBaseUrl + '?' + ssidPtr + ssid + '&' + 'pw=' + pw + '&ip=' + 'none';
+        String res;
+        res.concat("?");
+        res.concat(ssidPtr);
+        res.concat(ssid);
+        res.concat("&");
+        res.concat("pw=");
+        res.concat(pw);
+        res.concat("&ip=");
+        res.concat("none");
+        */
+
+        client.begin(localHost);
+        client.addHeader("Content-Type", "application/json");
+        //int httpCode = client.POST("{\"id\":\"0\",\"deviceType\":\"0\",\"deviceName\":\"WaterPump\",\"ssid\":\"ssid\",\"routerPassword\":\"pw\", \"userID\":\"1\"}");
+        Serial.println(client.connected());     
+        int httpCode = client.POST(jResult);
+        //Serial.println(res);
+        //if (httpcode > 0)
+        //{
+        //    String payload = client.getString();
+        //    Serial.println(payload);
+        //}
+
+        Serial.println(httpCode);      
+        client.end();
     }
 
     server.on("/", OnConnect);

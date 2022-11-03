@@ -24,6 +24,8 @@ public:
 	bool StartConfigPortal(const char* name);
 	bool GetConnected() const;
 	void ResetSettings();
+	String GetSSID();
+	String GetPassword();
 
 private:
 	WiFiManager wManager;
@@ -94,6 +96,16 @@ inline bool WifiConnector::GetConnected() const
 inline void WifiConnector::ResetSettings()
 {
 	wManager.resetSettings();
+}
+
+inline String WifiConnector::GetSSID()
+{
+	return wManager.getWiFiSSID();
+}
+
+inline String WifiConnector::GetPassword()
+{
+	return wManager.getWiFiPass();
 }
 
 
