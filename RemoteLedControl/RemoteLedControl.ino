@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
 #include <NTPClient.h>
@@ -5,9 +6,13 @@
 #include "ArduinoJson.h"
 #include "DateTime.h"
 #include <WiFiUdp.h>
+#include <WiFiClientSecure.h>
 
-const char* localHost = "https://localhost:7266/Devices";
+const char* localHost = "http://localhost:5289/Devices";
 const char* azureServerBaseUrl = "https://arduinowebapi.azure-api.net/Devices";
+
+const char* SSID = "DIGI-e9gF";
+const char* PW = "8MPyJHjv";
 
 StaticJsonDocument<128> doc;
 const char* input;
@@ -32,7 +37,7 @@ WebServer server(80);
 void LedOn()
 {    
     digitalWrite(output4, HIGH);
-    server.send(200, "text/html", "led on");
+    server.send(200, "text/html", "led on");   
 }
 
 void LedOff()
@@ -101,17 +106,63 @@ void UpdateDateTime()
     Now.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds);
 }
 
+WiFiManager wMan;
+String ssid, pw;
+
+void UseJson()
+{
+    StaticJsonDocument<256> pRequestDoc;
+    JsonObject jObj = pRequestDoc.to<JsonObject>();
+    String jResult;
+    jObj["id"] = 0;
+    jObj["deviceType"] = 0;
+    jObj["deviceName"] = "WaterPump";
+    jObj["ssid"] = ssid;
+    jObj["routerPassword"] = pw;
+    jObj["userID"] = 1;
+    jObj["ip"] = WiFi.localIP().toString();
+    serializeJson(pRequestDoc, jResult);
+    Serial.println(jResult);
+    HTTPClient client;
+    bool b = client.begin(azureServerBaseUrl);
+    client.addHeader("accept", "text/plain");
+    client.addHeader("Content-Type", "application/json");
+    int httpCode = client.POST(jResult);
+    Serial.println(client.errorToString(httpCode));
+    Serial.println(b);
+    Serial.println(httpCode);
+    Serial.println(WiFi.localIP().toString());
+    client.end();
+}
+
+//http://localhost:7266/Devices?ssid=testName&pw=testPw&ip=someIp
+void UseParameters()
+{
+    String apiRequest;
+    apiRequest.concat("?ssid=");
+    apiRequest.concat(ssid);
+    apiRequest.concat("&pw=");
+    apiRequest.concat(pw);
+    apiRequest.concat("&ip=");
+    apiRequest.concat(WiFi.localIP());
+    HTTPClient client;
+    client.begin(azureServerBaseUrl);
+    client.addHeader("Content-type", "text/plain");
+    int httpCode = client.POST(apiRequest);
+    Serial.println(httpCode);
+    Serial.println(apiRequest);
+    client.end();
+}
+
 void setup() {
    
     //9600 for bt
-    Serial.begin(115200);
-
-    WiFiManager wMan;
-    WiFi.mode(WIFI_STA);
-   
+    Serial.begin(115200);  
+    //WiFi.mode(WIFI_STA); 
     //wMan.resetSettings();
     bool res = wMan.autoConnect("AutoConnectAP", "password");
 
+    
     if (!res) {
         Serial.println("Failed to connect");
         timeClient.setTimeOffset(7200);
@@ -119,68 +170,38 @@ void setup() {
     }
     else {
         //if you get here you have connected to the WiFi    
-        Serial.println("connected...yeey :)");
+        Serial.println("connected...yeey :)");   
         
-        String ssid = wMan.getWiFiSSID();
-        String pw = wMan.getWiFiPass();             
-        HTTPClient client;
-        StaticJsonDocument<128> pRequestDoc;
-        JsonObject jObj = pRequestDoc.to<JsonObject>();      
-        String jResult;
-        jObj["id"] = 0;
-        jObj["deviceType"] = 0;
-        jObj["deviceName"] = "WaterPump";
-        jObj["ssid"] = ssid;
-        jObj["routerPassword"] = pw;
-        jObj["userID"] = 1;
-        serializeJson(pRequestDoc, jResult);
-        Serial.println(jResult);
-       
-        /*
-        String ssidPtr = "ssid=";
-        String andSign = "&";
-        String pwSign = "pw";     
-        //String res = azureServerBaseUrl + '?' + ssidPtr + ssid + '&' + 'pw=' + pw + '&ip=' + 'none';
-        String res;
-        res.concat("?");
-        res.concat(ssidPtr);
-        res.concat(ssid);
-        res.concat("&");
-        res.concat("pw=");
-        res.concat(pw);
-        res.concat("&ip=");
-        res.concat("none");
-        */
-
-        client.begin(localHost);
-        client.addHeader("Content-Type", "application/json");
-        //int httpCode = client.POST("{\"id\":\"0\",\"deviceType\":\"0\",\"deviceName\":\"WaterPump\",\"ssid\":\"ssid\",\"routerPassword\":\"pw\", \"userID\":\"1\"}");
-        Serial.println(client.connected());     
-        int httpCode = client.POST(jResult);
-        //Serial.println(res);
-        //if (httpcode > 0)
-        //{
-        //    String payload = client.getString();
-        //    Serial.println(payload);
-        //}
-
-        Serial.println(httpCode);      
-        client.end();
     }
+      
+    
 
+    
     server.on("/", OnConnect);
     server.on("/ledOn", LedOn);
     server.on("/ledOff", LedOff);
     server.on("/dateTime", GetDateTime);   
     server.onNotFound(NotFound);   
-    server.begin();    
+    server.begin(); 
+    
 }
+
+bool success = false;
+
 
 //serial.flush()
 void loop() {
     timeClient.update();   
     UpdateDateTime();
-    server.handleClient();
+    server.handleClient();  
+
+
+    ssid = wMan.getWiFiSSID();
+    pw = wMan.getWiFiPass();
+
+    UseJson();
+
+    delay(5000);
 
 
     if (!hasTimerBeenSet) return;
