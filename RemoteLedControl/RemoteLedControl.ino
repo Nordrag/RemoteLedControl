@@ -37,7 +37,7 @@ WebServer server(80);
 void LedOn()
 {    
     digitalWrite(output4, HIGH);
-    server.send(200, "text/html", "led on");   
+    server.send(200, "text/html", "led on");      
 }
 
 void LedOff()
@@ -71,6 +71,8 @@ void GetDateTime()
             params += server.argName(i);
         }
     }
+    
+    Serial.println(params);
     err = deserializeJson(doc, params);
     year = doc["year"];
     month = doc["month"];
@@ -158,6 +160,7 @@ void setup() {
    
     //9600 for bt
     Serial.begin(115200);  
+    pinMode(output4, OUTPUT);
     //WiFi.mode(WIFI_STA); 
     //wMan.resetSettings();
     bool res = wMan.autoConnect("AutoConnectAP", "password");
@@ -199,9 +202,9 @@ void loop() {
     ssid = wMan.getWiFiSSID();
     pw = wMan.getWiFiPass();
 
-    UseJson();
+    //UseJson();
 
-    delay(5000);
+    //delay(5000);
 
 
     if (!hasTimerBeenSet) return;
