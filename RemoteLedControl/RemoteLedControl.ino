@@ -11,8 +11,7 @@
 const char* localHost = "http://localhost:5289/Devices";
 const char* azureServerBaseUrl = "https://arduinowebapi.azure-api.net/Devices";
 
-const char* SSID = "DIGI-e9gF";
-const char* PW = "8MPyJHjv";
+
 
 StaticJsonDocument<128> doc;
 const char* input;
@@ -32,6 +31,8 @@ bool hasTimerBeenSet = false;
 DateTime Now(2022, 10, 10, 12,0,0);
 DateTime timer(2022, 10, 10, 12, 0, 0);
 
+WiFiManager wMan;
+String ssid, pw;
 WebServer server(80);
 
 void LedOn()
@@ -108,8 +109,6 @@ void UpdateDateTime()
     Now.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds);
 }
 
-WiFiManager wMan;
-String ssid, pw;
 
 void UseJson()
 {
@@ -130,10 +129,10 @@ void UseJson()
     client.addHeader("accept", "text/plain");
     client.addHeader("Content-Type", "application/json");
     int httpCode = client.POST(jResult);
-    Serial.println(client.errorToString(httpCode));
+  /*  Serial.println(client.errorToString(httpCode));
     Serial.println(b);
     Serial.println(httpCode);
-    Serial.println(WiFi.localIP().toString());
+    Serial.println(WiFi.localIP().toString());*/
     client.end();
 }
 
@@ -178,7 +177,7 @@ void setup() {
     }
       
     
-
+    UseJson();
     
     server.on("/", OnConnect);
     server.on("/ledOn", LedOn);
@@ -189,10 +188,6 @@ void setup() {
     
 }
 
-bool success = false;
-
-
-//serial.flush()
 void loop() {
     timeClient.update();   
     UpdateDateTime();
@@ -200,20 +195,16 @@ void loop() {
 
 
     ssid = wMan.getWiFiSSID();
-    pw = wMan.getWiFiPass();
-
-    //UseJson();
-
-    //delay(5000);
-
+    pw = wMan.getWiFiPass(); 
 
     if (!hasTimerBeenSet) return;
     if (!DateTime::IsToday(&timer, &Now)) return;
     if (DateTime::CompareMinutes(&Now, &timer))
     {
         digitalWrite(output4, LOW);
+        //get from server... add a day
         Serial.println("passed");
-        hasTimerBeenSet = false;
+        
     }
 }
 

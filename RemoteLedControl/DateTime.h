@@ -10,6 +10,8 @@ public:
 	~DateTime();
 	static bool IsToday(DateTime* lhs, DateTime* rhs);
 	static bool CompareMinutes(DateTime* lhs, DateTime* rhs);
+	int* GetCurrentHour();
+	int* GetCurrentMinutes();
 	void UpdateTime(int* Year, int* Month, int* Day, int* Hours, int* Minutes, int* Seconds);
 	void UpdateTime(int Year, int Month, int Day, int Hours, int Minutes, int Seconds);
 
@@ -61,6 +63,18 @@ inline bool DateTime::CompareMinutes(DateTime* lhs, DateTime* rhs)
 	}
 	return false;
 }
+
+inline int* DateTime::GetCurrentHour()
+{
+	return &hours;
+}
+
+inline int* DateTime::GetCurrentMinutes()
+{
+	return &minutes;
+}
+
+
 
 inline void DateTime::UpdateTime(int* Year, int* Month, int* Day, int* Hours, int* Minutes, int* Seconds)
 {
