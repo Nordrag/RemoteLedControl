@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoJson-6.19.4", "Libra
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTTPClient-2.0.0", "Libraries\HTTPClient\2.0.0\HTTPClient\HTTPClient-2.0.0.vcxitems", "{32D243E0-B35F-42F2-B42A-4BBFB3E36358}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Preferences-2.0.0", "Libraries\Preferences\2.0.0\Preferences\Preferences-2.0.0.vcxitems", "{FCD9F4A2-5048-4BC7-B8FD-F7280FD41D65}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -38,6 +40,8 @@ Global
 		Libraries\ArduinoJson\6.19.4\ArduinoJson\ArduinoJson-6.19.4.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\HTTPClient\2.0.0\HTTPClient\HTTPClient-2.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\NTPClient\3.2.1\NTPClient\NTPClient-3.2.1.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\Preferences\2.0.0\Preferences\Preferences-2.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\WiFiManager\2.0.13-beta\WiFiManager\WiFiManager-2.0.13-beta.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\Preferences\2.0.0\Preferences\Preferences-2.0.0.vcxitems*{fcd9f4a2-5048-4bc7-b8fd-f7280fd41d65}*SharedItemsImports = 9
 	EndGlobalSection
 EndGlobal

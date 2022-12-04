@@ -9,11 +9,12 @@
 #include <WiFiClientSecure.h>
 
 const char* localHost = "http://localhost:5289/Devices";
-const char* azureServerBaseUrl = "https://arduinowebapi.azure-api.net/Devices";
+const char* azureServerDevicesUrl = "https://arduinowebapi.azure-api.net/Devices";
+const char* azureServerTimersUrl = "https://arduinowebapi.azure-api.net/Datetime";
 
 
 
-StaticJsonDocument<128> doc;
+StaticJsonDocument<256> doc;
 const char* input;
 DeserializationError err;
 
@@ -25,32 +26,48 @@ WiFiUDP udp;
 NTPClient timeClient(udp, "pool.ntp.org");
 
 // Assign output variables to GPIO pins
-const int output4 = 4;
+const int pumpOutput = 4;
+const int lightOutput = 2;
+int deviceId;
+bool isOn;
 
 bool hasTimerBeenSet = false;
+bool timerActionTriggered = false;
 DateTime Now(2022, 10, 10, 12,0,0);
 DateTime timer(2022, 10, 10, 12, 0, 0);
-
 WiFiManager wMan;
 String ssid, pw;
 WebServer server(80);
+const char* prefDomain = "waterPump";
+unsigned long current, old, longDeltaTime;
+double deltaTime;
+float workTimeDelta;
+int year, month, day, h, m, s;
+int currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds;
+struct tm* ptm;
 
 void LedOn()
 {    
-    digitalWrite(output4, HIGH);
-    server.send(200, "text/html", "led on");      
+    digitalWrite(pumpOutput, LOW);
+    server.send(200, "text/html", "led on");  
+    isOn = true;
 }
 
 void LedOff()
 {    
-    digitalWrite(output4, LOW);
+    digitalWrite(pumpOutput, HIGH);
     server.send(200, "text/html", "led off");
+    isOn = false;
 }
 
 void OnConnect()
 {
-    Serial.println("connected");
     server.send(200, "text/html", "base url");
+}
+
+void SendStatus()
+{
+    server.send(200, "text/html", isOn ? "on" : "off");
 }
 
 void NotFound()
@@ -58,7 +75,40 @@ void NotFound()
     server.send(404, "text/html", "not found");
 }
 
-int year, month, day, h, m, s;
+void SendTemperature()
+{
+    auto rand = random(17, 20);
+    server.send(200, "text/html", String(rand));
+}
+
+void GetDateTime2()
+{
+    HTTPClient client;
+    String request = azureServerTimersUrl;
+    request += "/getCurrentTimer?deviceId=";
+    request += deviceId;
+    client.begin(request);
+    client.addHeader("accept", "application/json");
+    client.addHeader("Content-Type", "text/plain");
+    int code = client.GET();
+    Serial.println(request);
+    if (code > 0)
+    {
+        String payload = client.getString();
+        Serial.println(payload);
+        err = deserializeJson(doc, payload);
+        year = doc["year"];
+        month = doc["month"];
+        day = doc["day"];
+        h = doc["hour"];
+        m = doc["minute"];
+        s = doc["seconds"];
+        workTimeDelta = doc["lenght"];
+
+        timer.UpdateTime(year, month, day, h, m, s);
+        hasTimerBeenSet = true;
+    }
+}
 
 void GetDateTime()
 {
@@ -67,8 +117,7 @@ void GetDateTime()
     if (server.args() > 0)
     {
         for (size_t i = 0; i < server.args(); i++)
-        {
-            Serial.println(server.argName(i));
+        {          
             params += server.argName(i);
         }
     }
@@ -81,17 +130,11 @@ void GetDateTime()
     h = doc["hours"];
     m = doc["minutes"];
     s = doc["seconds"];
+    workTimeDelta = doc["worktime"];
        
     timer.UpdateTime(year, month, day, h, m, s);    
     hasTimerBeenSet = true;
-    Serial.println(timer.minutes);
-    Serial.println(Now.minutes);
-    Serial.println(hasTimerBeenSet);
-    Serial.println(DateTime::IsToday(&timer, &Now));
 }
-
-int currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds;
-struct tm* ptm;
 
 void UpdateDateTime()
 {
@@ -109,8 +152,53 @@ void UpdateDateTime()
     Now.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds);
 }
 
+void GetDeviceID()
+{
+    HTTPClient client;
+    String requestUrl = azureServerDevicesUrl;
+    requestUrl += "/getId?SSID=";
+    requestUrl += ssid;
+    requestUrl += "&Password=";
+    requestUrl += pw;
+    client.begin(requestUrl);
+    Serial.println(requestUrl);
+    client.addHeader("accept", "text/plain");
+    client.addHeader("Content-Type", "text/plain");
+    auto code = client.GET();
+    if (code > 0)
+    {
+        deviceId = client.getString().toInt();
+    }
+    Serial.println(deviceId);
+}
 
-void UseJson()
+void GetNextTimer()
+{
+    HTTPClient client;
+    String requestUrl = azureServerTimersUrl;
+    requestUrl += "/Datetime?deviceId=";
+    requestUrl += deviceId;
+    client.begin(requestUrl);
+    client.addHeader("accept", "text/plain");
+    client.addHeader("Content-Type", "application/json");
+    auto code = client.GET();
+    if (code > 0)
+    {
+        String payload = client.getString();
+        err = deserializeJson(doc, payload);
+        year = doc["year"];
+        month = doc["month"];
+        day = doc["day"];
+        h = doc["hours"];
+        m = doc["minutes"];
+        s = doc["seconds"];
+        timer.UpdateTime(year, month, day, h, m, s);
+        hasTimerBeenSet = true;
+        Serial.println("new timer");
+    }
+}
+
+void PostNewDevice()
 {
     StaticJsonDocument<256> pRequestDoc;
     JsonObject jObj = pRequestDoc.to<JsonObject>();
@@ -125,86 +213,79 @@ void UseJson()
     serializeJson(pRequestDoc, jResult);
     Serial.println(jResult);
     HTTPClient client;
-    bool b = client.begin(azureServerBaseUrl);
+    client.begin(azureServerDevicesUrl);
     client.addHeader("accept", "text/plain");
     client.addHeader("Content-Type", "application/json");
     int httpCode = client.POST(jResult);
-  /*  Serial.println(client.errorToString(httpCode));
-    Serial.println(b);
-    Serial.println(httpCode);
-    Serial.println(WiFi.localIP().toString());*/
-    client.end();
-}
-
-//http://localhost:7266/Devices?ssid=testName&pw=testPw&ip=someIp
-void UseParameters()
-{
-    String apiRequest;
-    apiRequest.concat("?ssid=");
-    apiRequest.concat(ssid);
-    apiRequest.concat("&pw=");
-    apiRequest.concat(pw);
-    apiRequest.concat("&ip=");
-    apiRequest.concat(WiFi.localIP());
-    HTTPClient client;
-    client.begin(azureServerBaseUrl);
-    client.addHeader("Content-type", "text/plain");
-    int httpCode = client.POST(apiRequest);
-    Serial.println(httpCode);
-    Serial.println(apiRequest);
     client.end();
 }
 
 void setup() {
    
-    //9600 for bt
     Serial.begin(115200);  
-    pinMode(output4, OUTPUT);
-    //WiFi.mode(WIFI_STA); 
-    //wMan.resetSettings();
+    pinMode(pumpOutput, OUTPUT);
+   // pinMode(lightOutput, OUTPUT);
     bool res = wMan.autoConnect("AutoConnectAP", "password");
 
     
     if (!res) {
         Serial.println("Failed to connect");
-        timeClient.setTimeOffset(7200);
-        // ESP.restart();
+        timeClient.setTimeOffset(7200);     
     }
     else {
         //if you get here you have connected to the WiFi    
         Serial.println("connected...yeey :)");   
-        
+        ssid = wMan.getWiFiSSID();
+        pw = wMan.getWiFiPass();
     }
       
     
-    UseJson();
+    PostNewDevice();
+    GetDeviceID();
     
     server.on("/", OnConnect);
     server.on("/ledOn", LedOn);
     server.on("/ledOff", LedOff);
-    server.on("/dateTime", GetDateTime);   
+    server.on("/dateTime", GetDateTime2);   
+    server.on("/status", SendStatus);   
+    server.on("/temp", SendTemperature);   
     server.onNotFound(NotFound);   
     server.begin(); 
     
 }
 
 void loop() {
+
+    old = current;
+    current = millis();
+    longDeltaTime = current - old;
+    deltaTime = longDeltaTime * 0.001;   
+    workTimeDelta -= deltaTime;  
     timeClient.update();   
     UpdateDateTime();
     server.handleClient();  
-
-
     ssid = wMan.getWiFiSSID();
     pw = wMan.getWiFiPass(); 
 
     if (!hasTimerBeenSet) return;
     if (!DateTime::IsToday(&timer, &Now)) return;
-    if (DateTime::CompareMinutes(&Now, &timer))
+    if (DateTime::CompareMinutes(&Now, &timer) && !timerActionTriggered)
     {
-        digitalWrite(output4, LOW);
-        //get from server... add a day
-        Serial.println("passed");
-        
+        timerActionTriggered = true;
+        GetNextTimer();
+        Serial.println("passed");       
+    }
+    if (timerActionTriggered)
+    {       
+        isOn = true;
+        digitalWrite(pumpOutput, LOW);
+        workTimeDelta -= deltaTime;
+        if (workTimeDelta <= 0)
+        {
+            isOn = false;
+            digitalWrite(pumpOutput, HIGH);
+            timerActionTriggered = false;
+        }
     }
 }
 

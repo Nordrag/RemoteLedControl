@@ -95,3 +95,36 @@ inline void DateTime::UpdateTime(int Year, int Month, int Day, int Hours, int Mi
 	minutes = Minutes;
 	seconds = Seconds;
 }
+
+class Time
+{
+public:
+	Time();
+	~Time();
+	void Tick();
+	unsigned long GetDeltaTime();
+
+private:
+	unsigned long current, old, deltaTime;
+};
+
+Time::Time()
+{
+}
+
+Time::~Time()
+{
+}
+
+inline void Time::Tick()
+{
+	old = current;
+	current = millis();
+	deltaTime = current - old;
+}
+
+inline unsigned long Time::GetDeltaTime()
+{
+	return deltaTime;
+}
+
