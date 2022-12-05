@@ -9,7 +9,7 @@ public:
 	DateTime(int Year, int Month, int Day, int Hours, int Minutes, int Seconds);
 	~DateTime();
 	static bool IsToday(DateTime* lhs, DateTime* rhs);
-	static bool CompareMinutes(DateTime* lhs, DateTime* rhs);
+	static bool CompareDayTime(DateTime* lhs, DateTime* rhs);
 	int* GetCurrentHour();
 	int* GetCurrentMinutes();
 	void UpdateTime(int* Year, int* Month, int* Day, int* Hours, int* Minutes, int* Seconds);
@@ -50,7 +50,7 @@ inline bool DateTime::IsToday(DateTime* lhs, DateTime* rhs)
 	return true;
 }
 
-inline bool DateTime::CompareMinutes(DateTime* lhs, DateTime* rhs)
+inline bool DateTime::CompareDayTime(DateTime* lhs, DateTime* rhs)
 {
 	
 	if (lhs->hours < rhs->hours)

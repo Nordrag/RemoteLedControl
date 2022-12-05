@@ -23,7 +23,7 @@ String weekDays[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "
 String months[12] = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
 
 WiFiUDP udp;
-NTPClient timeClient(udp, "pool.ntp.org");
+NTPClient timeClient(udp);
 
 // Assign output variables to GPIO pins
 const int pumpOutput = 4;
@@ -83,6 +83,7 @@ void SendTemperature()
 
 void GetDateTime2()
 {
+    server.send(200, "text/html", "time");
     HTTPClient client;
     String request = azureServerTimersUrl;
     request += "/getCurrentTimer?deviceId=";
@@ -91,7 +92,6 @@ void GetDateTime2()
     client.addHeader("accept", "application/json");
     client.addHeader("Content-Type", "text/plain");
     int code = client.GET();
-    Serial.println(request);
     if (code > 0)
     {
         String payload = client.getString();
@@ -101,12 +101,13 @@ void GetDateTime2()
         month = doc["month"];
         day = doc["day"];
         h = doc["hour"];
-        m = doc["minute"];
+        m = doc["minutes"];
         s = doc["seconds"];
         workTimeDelta = doc["lenght"];
+        workTimeDelta *= 60;
 
         timer.UpdateTime(year, month, day, h, m, s);
-        hasTimerBeenSet = true;
+        hasTimerBeenSet = true;       
     }
 }
 
@@ -122,7 +123,7 @@ void GetDateTime()
         }
     }
     
-    Serial.println(params);
+  
     err = deserializeJson(doc, params);
     year = doc["year"];
     month = doc["month"];
@@ -138,6 +139,8 @@ void GetDateTime()
 
 void UpdateDateTime()
 {
+    timeClient.setTimeOffset(3600);
+    timeClient.update();
     time_t epochTime = timeClient.getEpochTime();
     ptm = gmtime((time_t*)&epochTime);
     monthDay = ptm->tm_mday;
@@ -148,7 +151,6 @@ void UpdateDateTime()
     currentMinute = timeClient.getMinutes();
     currentSeconds = timeClient.getSeconds();
     //String weekDay = weekDays[timeClient.getDay()];   
-
     Now.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds);
 }
 
@@ -161,7 +163,6 @@ void GetDeviceID()
     requestUrl += "&Password=";
     requestUrl += pw;
     client.begin(requestUrl);
-    Serial.println(requestUrl);
     client.addHeader("accept", "text/plain");
     client.addHeader("Content-Type", "text/plain");
     auto code = client.GET();
@@ -169,7 +170,6 @@ void GetDeviceID()
     {
         deviceId = client.getString().toInt();
     }
-    Serial.println(deviceId);
 }
 
 void GetNextTimer()
@@ -211,7 +211,6 @@ void PostNewDevice()
     jObj["userID"] = 1;
     jObj["ip"] = WiFi.localIP().toString();
     serializeJson(pRequestDoc, jResult);
-    Serial.println(jResult);
     HTTPClient client;
     client.begin(azureServerDevicesUrl);
     client.addHeader("accept", "text/plain");
@@ -224,13 +223,14 @@ void setup() {
    
     Serial.begin(115200);  
     pinMode(pumpOutput, OUTPUT);
+    digitalWrite(pumpOutput, HIGH);
    // pinMode(lightOutput, OUTPUT);
     bool res = wMan.autoConnect("AutoConnectAP", "password");
 
     
     if (!res) {
         Serial.println("Failed to connect");
-        timeClient.setTimeOffset(7200);     
+        timeClient.begin();           
     }
     else {
         //if you get here you have connected to the WiFi    
@@ -260,23 +260,19 @@ void loop() {
     current = millis();
     longDeltaTime = current - old;
     deltaTime = longDeltaTime * 0.001;   
-    workTimeDelta -= deltaTime;  
     timeClient.update();   
     UpdateDateTime();
     server.handleClient();  
-    ssid = wMan.getWiFiSSID();
-    pw = wMan.getWiFiPass(); 
 
-    if (!hasTimerBeenSet) return;
+    if (hasTimerBeenSet != 1) return;
     if (!DateTime::IsToday(&timer, &Now)) return;
-    if (DateTime::CompareMinutes(&Now, &timer) && !timerActionTriggered)
+    if (DateTime::CompareDayTime(&Now, &timer))
     {
         timerActionTriggered = true;
-        GetNextTimer();
-        Serial.println("passed");       
-    }
+        //GetNextTimer();         
+    }    
     if (timerActionTriggered)
-    {       
+    {            
         isOn = true;
         digitalWrite(pumpOutput, LOW);
         workTimeDelta -= deltaTime;
