@@ -111,6 +111,40 @@ void GetDateTime2()
     }
 }
 
+void GetNextTimer()
+{
+    server.send(200, "text/html", "nextTime");
+    HTTPClient client;
+    String requestUrl = azureServerTimersUrl;
+    requestUrl += "?deviceId=";
+    requestUrl += deviceId;
+    client.begin(requestUrl);
+    client.addHeader("accept", "application/json");
+    client.addHeader("Content-Type", "text/plain");
+    auto code = client.GET();
+    if (code > 0)
+    {
+        String payload = client.getString();
+        Serial.println(payload);
+        err = deserializeJson(doc, payload);
+        year = doc["year"];
+        month = doc["month"];
+        day = doc["day"];
+        h = doc["hours"];
+        m = doc["minutes"];
+        s = doc["seconds"];
+        workTimeDelta = doc["lenght"];
+        workTimeDelta *= 60;
+        timer.UpdateTime(year, month, day, h, m, s);
+        hasTimerBeenSet = true;
+        Serial.println(year);
+        Serial.println(month);
+        Serial.println(day);
+        Serial.println(h);
+        Serial.println(m);
+    }
+}
+
 void GetDateTime()
 {
     String params;
@@ -169,32 +203,6 @@ void GetDeviceID()
     if (code > 0)
     {
         deviceId = client.getString().toInt();
-    }
-}
-
-void GetNextTimer()
-{
-    HTTPClient client;
-    String requestUrl = azureServerTimersUrl;
-    requestUrl += "/Datetime?deviceId=";
-    requestUrl += deviceId;
-    client.begin(requestUrl);
-    client.addHeader("accept", "text/plain");
-    client.addHeader("Content-Type", "application/json");
-    auto code = client.GET();
-    if (code > 0)
-    {
-        String payload = client.getString();
-        err = deserializeJson(doc, payload);
-        year = doc["year"];
-        month = doc["month"];
-        day = doc["day"];
-        h = doc["hours"];
-        m = doc["minutes"];
-        s = doc["seconds"];
-        timer.UpdateTime(year, month, day, h, m, s);
-        hasTimerBeenSet = true;
-        Serial.println("new timer");
     }
 }
 
@@ -264,23 +272,26 @@ void loop() {
     UpdateDateTime();
     server.handleClient();  
 
-    if (hasTimerBeenSet != 1) return;
-    if (!DateTime::IsToday(&timer, &Now)) return;
-    if (DateTime::CompareDayTime(&Now, &timer))
+    if (hasTimerBeenSet == 0)
     {
-        timerActionTriggered = true;
-        //GetNextTimer();         
-    }    
-    if (timerActionTriggered)
-    {            
-        isOn = true;
-        digitalWrite(pumpOutput, LOW);
         workTimeDelta -= deltaTime;
+        if (DateTime::IsToday(&timer, &Now))
+        {
+            if (DateTime::CompareDayTime(&Now, &timer))
+            {               
+                GetNextTimer();
+                delay(2000);
+            }           
+        }
         if (workTimeDelta <= 0)
         {
             isOn = false;
-            digitalWrite(pumpOutput, HIGH);
-            timerActionTriggered = false;
+            digitalWrite(pumpOutput, HIGH);       
+        }
+        else
+        {
+            isOn = true;
+            digitalWrite(pumpOutput, LOW);
         }
     }
 }
