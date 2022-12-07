@@ -29,7 +29,7 @@ NTPClient timeClient(udp);
 const int pumpOutput = 4;
 const int lightOutput = 2;
 int deviceId;
-bool isOn;
+bool isPumpOn, isLightOn;
 
 bool hasTimerBeenSet = false;
 bool timerActionTriggered = false;
@@ -46,18 +46,32 @@ int year, month, day, h, m, s;
 int currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds;
 struct tm* ptm;
 
-void LedOn()
+void PumpOn()
 {    
     digitalWrite(pumpOutput, LOW);
-    server.send(200, "text/html", "led on");  
-    isOn = true;
+    server.send(200, "text/html", "pump on");  
+    isPumpOn = true;
 }
 
-void LedOff()
+void PumpOff()
 {    
     digitalWrite(pumpOutput, HIGH);
-    server.send(200, "text/html", "led off");
-    isOn = false;
+    server.send(200, "text/html", "pump off");
+    isPumpOn = false;
+}
+
+void LightsOn()
+{
+    digitalWrite(lightOutput, LOW);
+    server.send(200, "text/html", "lighs on");
+    isLightOn = true;
+}
+
+void LightsOff()
+{
+    digitalWrite(lightOutput, HIGH);
+    server.send(200, "text/html", "lighs off");
+    isLightOn = false;
 }
 
 void OnConnect()
@@ -65,9 +79,14 @@ void OnConnect()
     server.send(200, "text/html", "base url");
 }
 
-void SendStatus()
+void SendPumpStatus()
 {
-    server.send(200, "text/html", isOn ? "on" : "off");
+    server.send(200, "text/html", isPumpOn ? "on" : "off");
+}
+
+void SendLightStatus()
+{
+    server.send(200, "text/html", isLightOn ? "on" : "off");
 }
 
 void NotFound()
@@ -252,11 +271,14 @@ void setup() {
     GetDeviceID();
     
     server.on("/", OnConnect);
-    server.on("/ledOn", LedOn);
-    server.on("/ledOff", LedOff);
+    server.on("/ledOn", PumpOn);
+    server.on("/ledOff", PumpOff);
     server.on("/dateTime", GetDateTime2);   
-    server.on("/status", SendStatus);   
+    server.on("/status", SendPumpStatus);   
     server.on("/temp", SendTemperature);   
+    server.on("/lightOn", LightsOn);   
+    server.on("/lightOff", LightsOff);   
+    server.on("/lightStatus", SendLightStatus);
     server.onNotFound(NotFound);   
     server.begin(); 
     
@@ -280,17 +302,17 @@ void loop() {
             if (DateTime::CompareDayTime(&Now, &timer))
             {               
                 GetNextTimer();
-                delay(2000);
+                delay(2000); //delay so we dont bomb the server
             }           
         }
         if (workTimeDelta <= 0)
         {
-            isOn = false;
+            isPumpOn = false;
             digitalWrite(pumpOutput, HIGH);       
         }
         else
         {
-            isOn = true;
+            isPumpOn = true;
             digitalWrite(pumpOutput, LOW);
         }
     }
