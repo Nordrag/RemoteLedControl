@@ -8,8 +8,9 @@ public:
 
 	DateTime(int Year, int Month, int Day, int Hours, int Minutes, int Seconds);
 	~DateTime();
-	static bool IsToday(DateTime* lhs, DateTime* rhs);
-	static bool CompareDayTime(DateTime* lhs, DateTime* rhs);
+	static bool IsToday(DateTime* now, DateTime* timer);
+	static bool CompareDayTime(DateTime* now, DateTime* timer);
+	static bool CompareTime(DateTime* now, DateTime* timer);
 	int* GetCurrentHour();
 	int* GetCurrentMinutes();
 	void UpdateTime(int* Year, int* Month, int* Day, int* Hours, int* Minutes, int* Seconds);
@@ -33,36 +34,32 @@ DateTime::~DateTime()
 {
 }
 
-inline bool DateTime::IsToday(DateTime* lhs, DateTime* rhs)
-{
-	if (lhs->day != rhs->day)
-	{
-		return false;
-	}
-	if (lhs->month != rhs->month)
-	{
-		return false;
-	}
-	if (lhs->year != rhs->year)
-	{
-		return false;
-	}
-	return true;
+inline bool DateTime::IsToday(DateTime* now, DateTime* timer)
+{	
+	bool dayCheck = now->day == timer->day;
+	bool monthCheck = now->month == timer->month;
+	bool yearCheck = now->year == timer->year;	
+	return dayCheck && monthCheck && yearCheck;
 }
 
-inline bool DateTime::CompareDayTime(DateTime* lhs, DateTime* rhs)
+inline bool DateTime::CompareDayTime(DateTime* now, DateTime* timer)
 {
-	
-	if (lhs->hours < rhs->hours)
-	{
-		return false;
-	}
-	if (lhs->minutes >= rhs->minutes)
-	{
-		return true;
-	}
-	return false;
+	bool hourCheck = now->hours == timer->hours;
+	bool minuteCheck = now->minutes >= timer->minutes;	
+	return hourCheck && minuteCheck;
 }
+
+inline bool DateTime::CompareTime(DateTime* now, DateTime* timer)
+{
+	bool dayCheck = now->day == timer->day;
+	bool monthCheck = now->month == timer->month;
+	bool yearCheck = now->year == timer->year;
+	bool hourCheck = now->hours == timer->hours;
+	bool minuteCheck = now->minutes >= timer->minutes;
+	return dayCheck && monthCheck && yearCheck && hourCheck && minuteCheck;
+}
+
+
 
 inline int* DateTime::GetCurrentHour()
 {
@@ -96,35 +93,4 @@ inline void DateTime::UpdateTime(int Year, int Month, int Day, int Hours, int Mi
 	seconds = Seconds;
 }
 
-class Time
-{
-public:
-	Time();
-	~Time();
-	void Tick();
-	unsigned long GetDeltaTime();
-
-private:
-	unsigned long current, old, deltaTime;
-};
-
-Time::Time()
-{
-}
-
-Time::~Time()
-{
-}
-
-inline void Time::Tick()
-{
-	old = current;
-	current = millis();
-	deltaTime = current - old;
-}
-
-inline unsigned long Time::GetDeltaTime()
-{
-	return deltaTime;
-}
 

@@ -12,8 +12,6 @@ const char* localHost = "http://localhost:5289/Devices";
 const char* azureServerDevicesUrl = "https://arduinowebapi.azure-api.net/Devices";
 const char* azureServerTimersUrl = "https://arduinowebapi.azure-api.net/Datetime";
 
-
-
 StaticJsonDocument<256> doc;
 const char* input;
 DeserializationError err;
@@ -25,20 +23,21 @@ String months[12] = { "January", "February", "March", "April", "May", "June", "J
 WiFiUDP udp;
 NTPClient timeClient(udp);
 
-// Assign output variables to GPIO pins
 const int pumpOutput = 4;
 const int lightOutput = 2;
 int deviceId;
 bool isPumpOn, isLightOn;
-
+bool isRequestOver = false;
 bool hasTimerBeenSet = false;
 bool timerActionTriggered = false;
+bool wasRequestBeforeTimer = false;
 DateTime Now(2022, 10, 10, 12,0,0);
 DateTime timer(2022, 10, 10, 12, 0, 0);
+DateTime onSetupTimer(2022, 10, 10, 12, 0, 0);
 WiFiManager wMan;
 String ssid, pw;
 WebServer server(80);
-const char* prefDomain = "waterPump";
+
 unsigned long current, old, longDeltaTime;
 double deltaTime;
 float workTimeDelta;
@@ -94,14 +93,25 @@ void NotFound()
     server.send(404, "text/html", "not found");
 }
 
+void ToggleTimer()
+{
+    hasTimerBeenSet = !hasTimerBeenSet;
+    server.send(200, "text/html", hasTimerBeenSet? "timer on" : "timer off");
+}
+
+void SendTimerStatus()
+{
+    server.send(200, "text/html", hasTimerBeenSet ? "on" : "off");
+}
+
 void SendTemperature()
 {
     auto rand = random(17, 20);
     server.send(200, "text/html", String(rand));
 }
 
-void GetDateTime2()
-{
+void GetCurrentTimer()
+{   
     server.send(200, "text/html", "time");
     HTTPClient client;
     String request = azureServerTimersUrl;
@@ -113,8 +123,7 @@ void GetDateTime2()
     int code = client.GET();
     if (code > 0)
     {
-        String payload = client.getString();
-        Serial.println(payload);
+        String payload = client.getString();      
         err = deserializeJson(doc, payload);
         year = doc["year"];
         month = doc["month"];
@@ -123,19 +132,19 @@ void GetDateTime2()
         m = doc["minutes"];
         s = doc["seconds"];
         workTimeDelta = doc["lenght"];
-        workTimeDelta *= 60;
-
+        hasTimerBeenSet = doc["isActive"];
+        workTimeDelta *= 60;      
         timer.UpdateTime(year, month, day, h, m, s);
-        hasTimerBeenSet = true;       
+        hasTimerBeenSet = true;             
     }
 }
 
 void GetNextTimer()
-{
+{  
     server.send(200, "text/html", "nextTime");
     HTTPClient client;
     String requestUrl = azureServerTimersUrl;
-    requestUrl += "?deviceId=";
+    requestUrl += "/minutesDebug?deviceId=";
     requestUrl += deviceId;
     client.begin(requestUrl);
     client.addHeader("accept", "application/json");
@@ -143,51 +152,21 @@ void GetNextTimer()
     auto code = client.GET();
     if (code > 0)
     {
-        String payload = client.getString();
-        Serial.println(payload);
+        String payload = client.getString();    
         err = deserializeJson(doc, payload);
         year = doc["year"];
         month = doc["month"];
         day = doc["day"];
-        h = doc["hours"];
+        h = doc["hour"];
         m = doc["minutes"];
         s = doc["seconds"];
         workTimeDelta = doc["lenght"];
+        hasTimerBeenSet = doc["isActive"];
         workTimeDelta *= 60;
         timer.UpdateTime(year, month, day, h, m, s);
-        hasTimerBeenSet = true;
-        Serial.println(year);
-        Serial.println(month);
-        Serial.println(day);
-        Serial.println(h);
-        Serial.println(m);
+        wasRequestBeforeTimer = false;
+        hasTimerBeenSet = true;         
     }
-}
-
-void GetDateTime()
-{
-    String params;
-    server.send(200, "text/html", server.hostHeader());
-    if (server.args() > 0)
-    {
-        for (size_t i = 0; i < server.args(); i++)
-        {          
-            params += server.argName(i);
-        }
-    }
-    
-  
-    err = deserializeJson(doc, params);
-    year = doc["year"];
-    month = doc["month"];
-    day = doc["day"];
-    h = doc["hours"];
-    m = doc["minutes"];
-    s = doc["seconds"];
-    workTimeDelta = doc["worktime"];
-       
-    timer.UpdateTime(year, month, day, h, m, s);    
-    hasTimerBeenSet = true;
 }
 
 void UpdateDateTime()
@@ -256,33 +235,40 @@ void setup() {
 
     
     if (!res) {
-        Serial.println("Failed to connect");
-        timeClient.begin();           
+        Serial.println("Failed to connect");                 
     }
     else {
         //if you get here you have connected to the WiFi    
-        Serial.println("connected...yeey :)");   
+        Serial.println("connected...yeey :)");  
+        
         ssid = wMan.getWiFiSSID();
         pw = wMan.getWiFiPass();
     }
       
-    
+    timeClient.begin();
     PostNewDevice();
     GetDeviceID();
+    GetCurrentTimer();
+    UpdateDateTime();
+    onSetupTimer.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, 0);
+    wasRequestBeforeTimer = DateTime::CompareDayTime(&onSetupTimer, &timer);
     
     server.on("/", OnConnect);
-    server.on("/ledOn", PumpOn);
-    server.on("/ledOff", PumpOff);
-    server.on("/dateTime", GetDateTime2);   
+    server.on("/pumpOn", PumpOn);
+    server.on("/pumpOff", PumpOff);
+    server.on("/dateTime", GetCurrentTimer);   
     server.on("/status", SendPumpStatus);   
     server.on("/temp", SendTemperature);   
     server.on("/lightOn", LightsOn);   
     server.on("/lightOff", LightsOff);   
     server.on("/lightStatus", SendLightStatus);
+    server.on("/toggleTimer", ToggleTimer);
+    server.on("/timerStatus", SendTimerStatus);
     server.onNotFound(NotFound);   
     server.begin(); 
     
 }
+
 
 void loop() {
 
@@ -293,28 +279,22 @@ void loop() {
     timeClient.update();   
     UpdateDateTime();
     server.handleClient();  
-
-    if (hasTimerBeenSet == 0)
+        
+    if (DateTime::CompareTime(&Now, &timer))
     {
-        workTimeDelta -= deltaTime;
-        if (DateTime::IsToday(&timer, &Now))
+        if (hasTimerBeenSet && !wasRequestBeforeTimer)
         {
-            if (DateTime::CompareDayTime(&Now, &timer))
-            {               
-                GetNextTimer();
-                delay(2000); //delay so we dont bomb the server
-            }           
-        }
-        if (workTimeDelta <= 0)
-        {
-            isPumpOn = false;
-            digitalWrite(pumpOutput, HIGH);       
-        }
-        else
-        {
+            workTimeDelta -= deltaTime;
             isPumpOn = true;
             digitalWrite(pumpOutput, LOW);
+            if (workTimeDelta <= 0)
+            {
+                isPumpOn = false;
+                hasTimerBeenSet = false;
+                GetNextTimer();
+                digitalWrite(pumpOutput, HIGH);
+            }
         }
-    }
+    }       
 }
 
