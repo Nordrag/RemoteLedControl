@@ -1,3 +1,4 @@
+#pragma once
 #include <Arduino.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
@@ -7,6 +8,8 @@
 #include "DateTime.h"
 #include <WiFiUdp.h>
 #include <WiFiClientSecure.h>
+#include "Statemachine.h"
+#include "States.h"
 
 const char* localHost = "http://localhost:5289/Devices";
 const char* azureServerDevicesUrl = "https://arduinowebapi.azure-api.net/Devices";
@@ -23,27 +26,39 @@ String months[12] = { "January", "February", "March", "April", "May", "June", "J
 WiFiUDP udp;
 NTPClient timeClient(udp);
 
-const int pumpOutput = 4;
-const int lightOutput = 2;
+const static int pumpOutput = 4;
+const static int lightOutput = 2;
 int deviceId;
-bool isPumpOn, isLightOn;
+static bool isPumpOn, isLightOn;
 bool isRequestOver = false;
-bool hasTimerBeenSet = false;
+static bool hasTimerBeenSet = false;
+bool reverseTimer;
 bool timerActionTriggered = false;
-bool wasRequestBeforeTimer = false;
-DateTime Now(2022, 10, 10, 12,0,0);
-DateTime timer(2022, 10, 10, 12, 0, 0);
+static bool wasRequestBeforeTimer = false;
+static DateTime Now(2022, 10, 10, 12,0,0);
+static DateTime timer(2022, 10, 10, 12, 0, 0);
 DateTime onSetupTimer(2022, 10, 10, 12, 0, 0);
 WiFiManager wMan;
 String ssid, pw;
 WebServer server(80);
 
 unsigned long current, old, longDeltaTime;
-double deltaTime;
+static double deltaTime;
 float workTimeDelta;
 int year, month, day, h, m, s;
 int currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds;
 struct tm* ptm;
+
+StateMachine stateMachine;
+
+int MANUAL_STATE = 0;
+int TIMER_STATE = 1;
+
+ManualState manualState;
+TimerState timerState(&workTimeDelta);
+
+Transition manualToTimer(TIMER_STATE, &hasTimerBeenSet);
+Transition timerToManual(MANUAL_STATE, &reverseTimer);
 
 void PumpOn()
 {    
@@ -134,8 +149,7 @@ void GetCurrentTimer()
         workTimeDelta = doc["lenght"];
         hasTimerBeenSet = doc["isActive"];
         workTimeDelta *= 60;      
-        timer.UpdateTime(year, month, day, h, m, s);
-        hasTimerBeenSet = true;             
+        timer.UpdateTime(year, month, day, h, m, s);                  
     }
 }
 
@@ -164,8 +178,7 @@ void GetNextTimer()
         hasTimerBeenSet = doc["isActive"];
         workTimeDelta *= 60;
         timer.UpdateTime(year, month, day, h, m, s);
-        wasRequestBeforeTimer = false;
-        hasTimerBeenSet = true;         
+        wasRequestBeforeTimer = false;              
     }
 }
 
@@ -232,8 +245,7 @@ void setup() {
     digitalWrite(pumpOutput, HIGH);
    // pinMode(lightOutput, OUTPUT);
     bool res = wMan.autoConnect("AutoConnectAP", "password");
-
-    
+   
     if (!res) {
         Serial.println("Failed to connect");                 
     }
@@ -267,6 +279,14 @@ void setup() {
     server.onNotFound(NotFound);   
     server.begin(); 
     
+
+    stateMachine.AddState(&manualState);
+    stateMachine.AddState(&timerState);
+
+    stateMachine.AddTransition(MANUAL_STATE, TIMER_STATE, &hasTimerBeenSet);
+    stateMachine.AddTransition(TIMER_STATE, MANUAL_STATE, &reverseTimer);
+
+    stateMachine.SetState(MANUAL_STATE);
 }
 
 
@@ -279,22 +299,9 @@ void loop() {
     timeClient.update();   
     UpdateDateTime();
     server.handleClient();  
+    reverseTimer = !hasTimerBeenSet;
         
-    if (DateTime::CompareTime(&Now, &timer))
-    {
-        if (hasTimerBeenSet && !wasRequestBeforeTimer)
-        {
-            workTimeDelta -= deltaTime;
-            isPumpOn = true;
-            digitalWrite(pumpOutput, LOW);
-            if (workTimeDelta <= 0)
-            {
-                isPumpOn = false;
-                hasTimerBeenSet = false;
-                GetNextTimer();
-                digitalWrite(pumpOutput, HIGH);
-            }
-        }
-    }       
+    stateMachine.Update();
+    
 }
 

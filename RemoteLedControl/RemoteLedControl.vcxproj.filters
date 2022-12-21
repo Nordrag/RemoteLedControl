@@ -39,5 +39,11 @@
     <ClInclude Include="Statemachine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="States.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="State.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
