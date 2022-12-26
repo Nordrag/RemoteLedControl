@@ -1,6 +1,13 @@
 #pragma once
-#include "State.h"
+#include "Statemachine.h"
 #include "DateTime.h"
+
+extern double deltaTime;
+extern bool isPumpOn, hasTimerBeenSet, wasRequestBeforeTimer;
+extern DateTime Now, timer;
+extern const int pumpOutput;
+
+extern void GetNextTimer();
 
 class ManualState : public State
 {
@@ -19,6 +26,7 @@ ManualState::~ManualState() { }
 
 inline void ManualState::OnEnter()
 {
+	Serial.println("entered manual state");
 }
 
 inline void ManualState::Update()
@@ -27,6 +35,7 @@ inline void ManualState::Update()
 
 inline void ManualState::OnExit()
 {
+	Serial.println("entered left state");
 }
 //end of manual state
 
@@ -51,6 +60,8 @@ inline void TimerState::OnEnter()
 	{
 		isPumpOn = true;
 	}
+	Serial.println(workTime);
+	Serial.println("entered timer state");
 }
 
 inline void TimerState::Update()
@@ -61,10 +72,10 @@ inline void TimerState::Update()
 	{
 		if (!wasRequestBeforeTimer)
 		{
-			workTimeDelta -= deltaTime;
+			workTime -= deltaTime;
 			isPumpOn = true;
 			digitalWrite(pumpOutput, LOW);
-			if (workTimeDelta <= 0)
+			if (workTime <= 0)
 			{
 				isPumpOn = false;
 				hasTimerBeenSet = false;
@@ -78,4 +89,46 @@ inline void TimerState::Update()
 inline void TimerState::OnExit()
 {
 	isPumpOn = false;
+	Serial.println("left timer state state");
+	Serial.println(workTime);
 }
+
+class StateOne : public State
+{
+public:
+	StateOne() { }
+	~StateOne() { }
+
+	void OnEnter() override
+	{
+		Serial.println("entered state one");
+	}
+	void OnExit() override
+	{
+		Serial.println("left state one");
+	}
+	void Update() override
+	{
+	}
+};
+
+
+class StateTwo : public State
+{
+public:
+	StateTwo() { }
+	~StateTwo() { }
+
+	void OnEnter()
+	{
+		Serial.println("entered state two");
+	}
+	void OnExit()
+	{
+		Serial.println("left state two");
+	}
+	void Update()
+	{
+		
+	}
+};
