@@ -7,6 +7,7 @@ public:
 	int year, month, day, hours, minutes, seconds;
 
 	DateTime(int Year, int Month, int Day, int Hours, int Minutes, int Seconds);
+	DateTime() { }
 	~DateTime();
 	static bool IsToday(DateTime* now, DateTime* timer);
 	static bool CompareDayTime(DateTime* now, DateTime* timer);
@@ -35,27 +36,35 @@ DateTime::~DateTime()
 }
 
 inline bool DateTime::IsToday(DateTime* now, DateTime* timer)
-{	
+{
 	bool dayCheck = now->day == timer->day;
 	bool monthCheck = now->month == timer->month;
-	bool yearCheck = now->year == timer->year;	
+	bool yearCheck = now->year == timer->year;
 	return dayCheck && monthCheck && yearCheck;
 }
 
 inline bool DateTime::CompareDayTime(DateTime* now, DateTime* timer)
 {
 	bool hourCheck = now->hours == timer->hours;
-	bool minuteCheck = now->minutes >= timer->minutes;	
+	bool minuteCheck = now->minutes >= timer->minutes;
 	return hourCheck && minuteCheck;
 }
 
 inline bool DateTime::CompareTime(DateTime* now, DateTime* timer)
 {
-	bool dayCheck = now->day == timer->day;
-	bool monthCheck = now->month == timer->month;
-	bool yearCheck = now->year == timer->year;
-	bool hourCheck = now->hours == timer->hours;
-	bool minuteCheck = now->minutes >= timer->minutes;
+	bool yearCheck = now->year >= timer->year;
+	bool monthCheck = now->month >= timer->month;
+	bool dayCheck = now->day >= timer->day;
+	bool hourCheck = now->hours >= timer->hours;
+	bool minuteCheck = false;
+
+	if (now->hours > timer->hours)
+	{
+		minuteCheck = true;
+		return dayCheck && monthCheck && yearCheck && hourCheck && minuteCheck;
+	}
+
+	minuteCheck = now->minutes >= timer->minutes;
 	return dayCheck && monthCheck && yearCheck && hourCheck && minuteCheck;
 }
 

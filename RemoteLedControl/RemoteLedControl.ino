@@ -9,6 +9,7 @@
 #include <WiFiUdp.h>
 #include <WiFiClientSecure.h>
 #include <Preferences.h>
+#define LOG(X) Serial.println(X)
 
 const char* localHost = "http://localhost:5289/Devices";
 const char* azureServerDevicesUrl = "https://arduinowebapi.azure-api.net/Devices";
@@ -50,11 +51,20 @@ struct tm* ptm;
 int State = 0;
 Preferences prefs;
 
+//add statemachine
+
+void Restart()
+{
+    server.send(200, "text/html", "pump on");
+    ESP.restart();
+}
+
 void PumpOn()
 {    
     digitalWrite(pumpOutput, LOW);
     server.send(200, "text/html", "pump on");  
     isPumpOn = true;
+    State = 0;
 }
 
 void PumpOff()
@@ -62,20 +72,21 @@ void PumpOff()
     digitalWrite(pumpOutput, HIGH);
     server.send(200, "text/html", "pump off");
     isPumpOn = false;
+    State = 0;
 }
 
 void LightsOn()
 {
     digitalWrite(lightOutput, LOW);
     server.send(200, "text/html", "lighs on");
-    isLightOn = true;
+    isLightOn = true;   
 }
 
 void LightsOff()
 {
     digitalWrite(lightOutput, HIGH);
     server.send(200, "text/html", "lighs off");
-    isLightOn = false;
+    isLightOn = false; 
 }
 
 void OnConnect()
@@ -98,11 +109,41 @@ void NotFound()
     server.send(404, "text/html", "not found");
 }
 
+void GetRemainingTime()
+{
+    server.send(200, "text/html", "remTime");
+    HTTPClient client;
+    String requestUrl = azureServerTimersUrl;
+    requestUrl += "/getRemainingTime?deviceId=";
+    requestUrl += deviceId;
+    client.begin(requestUrl);
+    client.addHeader("accept", "application/json");
+    client.addHeader("Content-Type", "text/plain");
+    auto code = client.GET();
+    if (code > 0)
+    {
+        String payload = client.getString();
+        err = deserializeJson(doc, payload); 
+        String d = doc["time"];
+        workTimeDelta = d.toInt() * 60;
+        hasTimerBeenSet = doc["isActive"];                
+        State = hasTimerBeenSet;
+        //timer.UpdateTime(year, month, day, h, m, s);
+        LOG(h);
+        LOG(m);
+        LOG(State);
+        LOG(workTimeDelta);
+        LOG(payload);       
+    }
+    else
+    {
+        LOG("error requesting rem time");
+    }
+}
+
 void ToggleTimer()
 {
-    hasTimerBeenSet = !hasTimerBeenSet;
-    State = hasTimerBeenSet;
-    server.send(200, "text/html", hasTimerBeenSet? "timer on" : "timer off");
+    GetRemainingTime();  
 }
 
 void SendTimerStatus()
@@ -117,10 +158,10 @@ void SendTemperature()
 }
 
 void GetCurrentTimer()
-{   
-    server.send(200, "text/html", "time");
+{      
     HTTPClient client;
     String request = azureServerTimersUrl;
+    server.send(200, "text/html", "getting current time");
     request += "/getCurrentTimer?deviceId=";
     request += deviceId;
     client.begin(request);
@@ -129,7 +170,9 @@ void GetCurrentTimer()
     int code = client.GET();
     if (code > 0)
     {
-        String payload = client.getString();      
+        LOG("incoming timer");
+        String payload = client.getString();          
+        LOG(payload);
         err = deserializeJson(doc, payload);
         year = doc["year"];
         month = doc["month"];
@@ -141,7 +184,7 @@ void GetCurrentTimer()
         hasTimerBeenSet = doc["isActive"];
         workTimeDelta *= 60;      
         timer.UpdateTime(year, month, day, h, m, s);           
-        State = hasTimerBeenSet;     
+        State = hasTimerBeenSet;          
     }
 }
 
@@ -234,30 +277,22 @@ void PostNewDevice()
 }
 
 void StateUpdate()
-{
-    switch (State)
-    {
-    case 0:
-        break;
-    case 1:
+{  
+    if (State == 1)
+    {              
         if (DateTime::CompareTime(&Now, &timer))
-        {
-            
-                workTimeDelta -= deltaTime;
-                isPumpOn = true;
-                digitalWrite(pumpOutput, LOW);
-                if (workTimeDelta <= 0)
-                {
-                    isPumpOn = false;
-                    hasTimerBeenSet = false;
-                    GetNextTimer();
-                    digitalWrite(pumpOutput, HIGH);
-                }
-            
+        {                     
+            workTimeDelta -= deltaTime;
+            isPumpOn = true;
+            digitalWrite(pumpOutput, LOW);
+            if (workTimeDelta <= 0)
+            {
+                isPumpOn = false;
+                hasTimerBeenSet = false;
+                GetNextTimer();
+                digitalWrite(pumpOutput, HIGH);             
+            }            
         }
-        break;
-    default:
-        break;
     }
 }
 
@@ -300,6 +335,7 @@ void setup() {
     server.on("/lightStatus", SendLightStatus);
     server.on("/toggleTimer", ToggleTimer);
     server.on("/timerStatus", SendTimerStatus);
+    server.on("/restart", Restart);
     server.onNotFound(NotFound);   
     server.begin(); 
 }
@@ -315,6 +351,6 @@ void loop() {
     UpdateDateTime();
     server.handleClient();  
     
-    StateUpdate();
+    StateUpdate(); 
 }
 
