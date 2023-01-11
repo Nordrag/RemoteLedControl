@@ -31,3 +31,9 @@
 *.out
 *.app
 *.db
+*.opendb
+*.db
+*.db-shm
+*.db-wal
+*.db
+.vs/RemoteLedControl/v17/Browse.VC.db

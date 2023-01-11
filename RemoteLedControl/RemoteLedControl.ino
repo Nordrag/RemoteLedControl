@@ -41,9 +41,12 @@ WiFiManager wMan;
 String ssid, pw;
 WebServer server(80);
 
+int prevSecond = 0;
+bool shouldTick = false;
+
 unsigned long current, old, longDeltaTime;
 double deltaTime;
-float workTimeDelta;
+int workTimeDelta;
 int year, month, day, h, m, s;
 int currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds;
 struct tm* ptm;
@@ -127,18 +130,8 @@ void GetRemainingTime()
         String d = doc["time"];
         workTimeDelta = d.toInt() * 60;
         hasTimerBeenSet = doc["isActive"];                
-        State = hasTimerBeenSet;
-        //timer.UpdateTime(year, month, day, h, m, s);
-        LOG(h);
-        LOG(m);
-        LOG(State);
-        LOG(workTimeDelta);
-        LOG(payload);       
-    }
-    else
-    {
-        LOG("error requesting rem time");
-    }
+        State = hasTimerBeenSet;               
+    } 
 }
 
 void ToggleTimer()
@@ -230,6 +223,16 @@ void UpdateDateTime()
     currentHour = timeClient.getHours();
     currentMinute = timeClient.getMinutes();
     currentSeconds = timeClient.getSeconds();
+
+    if (currentSeconds != prevSecond)
+    {
+        prevSecond = currentSeconds;     
+        if (State == 1 && shouldTick)
+        {
+            workTimeDelta--;
+        }
+    }
+
     //String weekDay = weekDays[timeClient.getDay()];   
     Now.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds);
 }
@@ -279,8 +282,9 @@ void PostNewDevice()
 void StateUpdate()
 {  
     if (State == 1)
-    {              
-        if (DateTime::CompareTime(&Now, &timer))
+    {       
+        shouldTick = DateTime::CompareTime(&Now, &timer);
+        if (shouldTick)
         {                     
             workTimeDelta -= deltaTime;
             isPumpOn = true;
@@ -301,7 +305,7 @@ void setup() {
     Serial.begin(115200);  
     pinMode(pumpOutput, OUTPUT);
     digitalWrite(pumpOutput, HIGH);
-   // pinMode(lightOutput, OUTPUT);
+    //pinMode(lightOutput, OUTPUT);
     bool res = wMan.autoConnect("AutoConnectAP", "password");
    
     prefs.begin("waterpump", false);
@@ -343,10 +347,10 @@ void setup() {
 
 void loop() {
     
-    old = current;
+    /*old = current;
     current = millis();
     longDeltaTime = current - old;
-    deltaTime = longDeltaTime * 0.001;   
+    deltaTime = longDeltaTime * 0.001;  */ 
     timeClient.update();   
     UpdateDateTime();
     server.handleClient();  

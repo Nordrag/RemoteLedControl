@@ -2,18 +2,18 @@
 #include "Statemachine.h"
 #include "DateTime.h"
 
-extern double deltaTime;
+
 extern bool isPumpOn, hasTimerBeenSet, wasRequestBeforeTimer;
 extern DateTime Now, timer;
 extern const int pumpOutput;
 
 extern void GetNextTimer();
 
-class ManualState : public State
+class IdleState : public State
 {
 public:
-	ManualState();
-	~ManualState();
+	IdleState();
+	~IdleState();
 	void OnEnter();
 	void Update();
 	void OnExit();
@@ -21,19 +21,19 @@ public:
 private:
 };
 
-ManualState::ManualState() { }
-ManualState::~ManualState() { }
+IdleState::IdleState() { }
+IdleState::~IdleState() { }
 
-inline void ManualState::OnEnter()
+inline void IdleState::OnEnter()
 {
 	Serial.println("entered manual state");
 }
 
-inline void ManualState::Update()
+inline void IdleState::Update()
 {
 }
 
-inline void ManualState::OnExit()
+inline void IdleState::OnExit()
 {
 	Serial.println("entered left state");
 }
@@ -92,43 +92,3 @@ inline void TimerState::OnExit()
 	Serial.println("left timer state state");
 	Serial.println(workTime);
 }
-
-class StateOne : public State
-{
-public:
-	StateOne() { }
-	~StateOne() { }
-
-	void OnEnter() override
-	{
-		Serial.println("entered state one");
-	}
-	void OnExit() override
-	{
-		Serial.println("left state one");
-	}
-	void Update() override
-	{
-	}
-};
-
-
-class StateTwo : public State
-{
-public:
-	StateTwo() { }
-	~StateTwo() { }
-
-	void OnEnter()
-	{
-		Serial.println("entered state two");
-	}
-	void OnExit()
-	{
-		Serial.println("left state two");
-	}
-	void Update()
-	{
-		
-	}
-};
