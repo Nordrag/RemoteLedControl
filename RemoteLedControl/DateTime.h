@@ -12,9 +12,6 @@ public:
 	static bool IsToday(DateTime* now, DateTime* timer);
 	static bool CompareDayTime(DateTime* now, DateTime* timer);
 	static bool CompareTime(DateTime* now, DateTime* timer);
-	int* GetCurrentHour();
-	int* GetCurrentMinutes();
-	void UpdateTime(int* Year, int* Month, int* Day, int* Hours, int* Minutes, int* Seconds);
 	void UpdateTime(int Year, int Month, int Day, int Hours, int Minutes, int Seconds);
 
 private:
@@ -66,30 +63,6 @@ inline bool DateTime::CompareTime(DateTime* now, DateTime* timer)
 
 	minuteCheck = now->minutes >= timer->minutes;
 	return dayCheck && monthCheck && yearCheck && hourCheck && minuteCheck;
-}
-
-
-
-inline int* DateTime::GetCurrentHour()
-{
-	return &hours;
-}
-
-inline int* DateTime::GetCurrentMinutes()
-{
-	return &minutes;
-}
-
-
-
-inline void DateTime::UpdateTime(int* Year, int* Month, int* Day, int* Hours, int* Minutes, int* Seconds)
-{
-	year = *Year;
-	month = *Month;
-	day = *Day;
-	hours = *Hours;
-	minutes = *Minutes;
-	seconds = *Seconds;
 }
 
 inline void DateTime::UpdateTime(int Year, int Month, int Day, int Hours, int Minutes, int Seconds)

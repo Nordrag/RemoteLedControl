@@ -15,6 +15,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HTTPClient-2.0.0", "Librari
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Preferences-2.0.0", "Libraries\Preferences\2.0.0\Preferences\Preferences-2.0.0.vcxitems", "{FCD9F4A2-5048-4BC7-B8FD-F7280FD41D65}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DallasTemperature-3.9.0", "Libraries\DallasTemperature\3.9.0\DallasTemperature\DallasTemperature-3.9.0.vcxitems", "{CF27B744-E657-4EBB-A7C4-FF740A2B5840}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OneWire-2.3.7", "Libraries\OneWire\2.3.7\OneWire\OneWire-2.3.7.vcxitems", "{E468AC04-EA3C-4DCC-BE68-B589C277F350}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -38,10 +42,14 @@ Global
 		Libraries\WiFiManager\2.0.13-beta\WiFiManager\WiFiManager-2.0.13-beta.vcxitems*{80b3e7c5-679f-4683-bd8a-735bdb3c2df0}*SharedItemsImports = 9
 		Libraries\ArduinoJson\6.19.4\ArduinoJson\ArduinoJson-6.19.4.vcxitems*{b4079890-135d-452b-8b34-6131678bfb09}*SharedItemsImports = 9
 		Libraries\ArduinoJson\6.19.4\ArduinoJson\ArduinoJson-6.19.4.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\DallasTemperature\3.9.0\DallasTemperature\DallasTemperature-3.9.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\HTTPClient\2.0.0\HTTPClient\HTTPClient-2.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\NTPClient\3.2.1\NTPClient\NTPClient-3.2.1.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\OneWire\2.3.7\OneWire\OneWire-2.3.7.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\Preferences\2.0.0\Preferences\Preferences-2.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\WiFiManager\2.0.13-beta\WiFiManager\WiFiManager-2.0.13-beta.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\DallasTemperature\3.9.0\DallasTemperature\DallasTemperature-3.9.0.vcxitems*{cf27b744-e657-4ebb-a7c4-ff740a2b5840}*SharedItemsImports = 9
+		Libraries\OneWire\2.3.7\OneWire\OneWire-2.3.7.vcxitems*{e468ac04-ea3c-4dcc-be68-b589c277f350}*SharedItemsImports = 9
 		Libraries\Preferences\2.0.0\Preferences\Preferences-2.0.0.vcxitems*{fcd9f4a2-5048-4bc7-b8fd-f7280fd41d65}*SharedItemsImports = 9
 	EndGlobalSection
 EndGlobal

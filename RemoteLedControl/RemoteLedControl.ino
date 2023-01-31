@@ -1,4 +1,6 @@
 #pragma once
+#include <OneWire.h>
+#include <DallasTemperature.h>
 #include <Arduino.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
@@ -27,7 +29,8 @@ WiFiUDP udp;
 NTPClient timeClient(udp);
 
 const int pumpOutput = 4;
-const int lightOutput = 2;
+const int lightOutput = 16;
+const int heatSensor = 13;
 int deviceId;
 bool isPumpOn, isLightOn;
 bool isRequestOver = false;
@@ -41,6 +44,9 @@ WiFiManager wMan;
 String ssid, pw;
 WebServer server(80);
 
+OneWire oneWire(heatSensor);
+DallasTemperature sensors(&oneWire);
+
 int prevSecond = 0;
 bool shouldTick = false;
 
@@ -52,9 +58,12 @@ int currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds;
 struct tm* ptm;
 
 int State = 0;
+int temp = 0;
 Preferences prefs;
 
 //add statemachine
+
+TaskHandle_t TemperatureReader;
 
 void Restart()
 {
@@ -62,12 +71,23 @@ void Restart()
     ESP.restart();
 }
 
+void GetAllStatus()
+{
+    server.send(200, "text/html", String(String(isPumpOn) + "|" + String(isLightOn) + "|" + String(hasTimerBeenSet)));
+}
+
 void PumpOn()
 {    
     digitalWrite(pumpOutput, LOW);
     server.send(200, "text/html", "pump on");  
     isPumpOn = true;
-    State = 0;
+    State = 0; //?
+    LOG("on");
+}
+
+void GetTemperature()
+{
+    server.send(200, "text/html", String(temp));
 }
 
 void PumpOff()
@@ -112,6 +132,39 @@ void NotFound()
     server.send(404, "text/html", "not found");
 }
 
+void ReadTemperature(void* param)
+{
+    while (true)
+    {
+        sensors.requestTemperatures();
+        temp = sensors.getTempCByIndex(0);
+        delay(50);
+    }    
+}
+
+void GetStatusFromServer()
+{
+    HTTPClient client;
+    String requestUrl = azureServerTimersUrl;
+    requestUrl += "/Status";
+    client.begin(requestUrl);
+    client.addHeader("accept", "application/json");
+    client.addHeader("Content-Type", "text/plain");
+    auto code = client.GET();
+
+    if (code > 0)
+    {
+        String payload = client.getString();
+        err = deserializeJson(doc, payload);
+        String d = doc["time"];
+        isPumpOn = doc["isPumpActive"];
+        isLightOn = doc["isLightActive"];
+        isTimerActive = doc["isTimerActive"];
+        workTimeDelta = doc["MaxRunTime"];
+        workTimeDelta *= 60;
+    }
+}
+
 void GetRemainingTime()
 {
     server.send(200, "text/html", "remTime");
@@ -145,9 +198,8 @@ void SendTimerStatus()
 }
 
 void SendTemperature()
-{
-    auto rand = random(17, 20);
-    server.send(200, "text/html", String(rand));
+{    
+    server.send(200, "text/html", String(temp));
 }
 
 void GetCurrentTimer()
@@ -304,9 +356,11 @@ void setup() {
    
     Serial.begin(115200);  
     pinMode(pumpOutput, OUTPUT);
+    pinMode(lightOutput, OUTPUT);
     digitalWrite(pumpOutput, HIGH);
-    //pinMode(lightOutput, OUTPUT);
-    bool res = wMan.autoConnect("AutoConnectAP", "password");
+    digitalWrite(lightOutput, HIGH);
+    bool res = wMan.autoConnect("Waterpump", "password");
+   
    
     prefs.begin("waterpump", false);
     deviceId = prefs.getInt("deviceId", 0);
@@ -318,6 +372,7 @@ void setup() {
         Serial.println("connected");         
         ssid = wMan.getWiFiSSID();
         pw = wMan.getWiFiPass();
+        sensors.begin();
     }
       
     timeClient.begin();
@@ -339,22 +394,20 @@ void setup() {
     server.on("/lightStatus", SendLightStatus);
     server.on("/toggleTimer", ToggleTimer);
     server.on("/timerStatus", SendTimerStatus);
+    server.on("/allStatus", GetAllStatus);
     server.on("/restart", Restart);
     server.onNotFound(NotFound);   
     server.begin(); 
+
+    xTaskCreatePinnedToCore(ReadTemperature, "TempReader", 10000, nullptr, 1, &TemperatureReader, 1);
 }
 
 
 void loop() {
-    
-    /*old = current;
-    current = millis();
-    longDeltaTime = current - old;
-    deltaTime = longDeltaTime * 0.001;  */ 
+
     timeClient.update();   
     UpdateDateTime();
-    server.handleClient();  
-    
-    StateUpdate(); 
+    server.handleClient();     
+    StateUpdate();    
 }
 
