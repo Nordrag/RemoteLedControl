@@ -16,6 +16,7 @@
 const char* localHost = "http://localhost:5289/Devices";
 const char* azureServerDevicesUrl = "https://arduinowebapi.azure-api.net/Devices";
 const char* azureServerTimersUrl = "https://arduinowebapi.azure-api.net/Datetime";
+const char* azureServerBaseUrl = "https://arduinowebapi.azure-api.net/";
 
 StaticJsonDocument<256> doc;
 const char* input;
@@ -51,7 +52,7 @@ int prevSecond = 0;
 bool shouldTick = false;
 
 unsigned long current, old, longDeltaTime;
-double deltaTime;
+int refreshRate = 5;
 int workTimeDelta;
 int year, month, day, h, m, s;
 int currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds;
@@ -132,37 +133,51 @@ void NotFound()
     server.send(404, "text/html", "not found");
 }
 
-void ReadTemperature(void* param)
+void UpdateStatus(void* param)
 {
+    //-= delta time?
     while (true)
     {
+        refreshRate--;
         sensors.requestTemperatures();
         temp = sensors.getTempCByIndex(0);
-        delay(50);
-    }    
+        LOG(refreshRate);
+        if (refreshRate <= 0)
+        {
+            GetStatusFromServer();
+        }
+
+        delay(1000);
+    }
 }
 
 void GetStatusFromServer()
 {
     HTTPClient client;
-    String requestUrl = azureServerTimersUrl;
-    requestUrl += "/Status";
+    String requestUrl = azureServerBaseUrl;
+    requestUrl += "/Status?id=";
+    requestUrl += deviceId;
     client.begin(requestUrl);
     client.addHeader("accept", "application/json");
     client.addHeader("Content-Type", "text/plain");
-    auto code = client.GET();
+    auto code = client.GET();  
 
     if (code > 0)
     {
-        String payload = client.getString();
-        err = deserializeJson(doc, payload);
-        String d = doc["time"];
+        String payload = client.getString();      
+        err = deserializeJson(doc, payload);      
         isPumpOn = doc["isPumpActive"];
         isLightOn = doc["isLightActive"];
         isTimerActive = doc["isTimerActive"];
-        workTimeDelta = doc["MaxRunTime"];
+        workTimeDelta = doc["maxRunTime"];
+        refreshRate = doc["refreshRate"];
         workTimeDelta *= 60;
+        //sync server
     }
+    else
+    {
+        refreshRate = 3000;
+    }   
 }
 
 void GetRemainingTime()
@@ -214,10 +229,8 @@ void GetCurrentTimer()
     client.addHeader("Content-Type", "text/plain");
     int code = client.GET();
     if (code > 0)
-    {
-        LOG("incoming timer");
-        String payload = client.getString();          
-        LOG(payload);
+    {       
+        String payload = client.getString();                 
         err = deserializeJson(doc, payload);
         year = doc["year"];
         month = doc["month"];
@@ -278,6 +291,7 @@ void UpdateDateTime()
 
     if (currentSeconds != prevSecond)
     {
+        //add another check here
         prevSecond = currentSeconds;     
         if (State == 1 && shouldTick)
         {
@@ -337,8 +351,7 @@ void StateUpdate()
     {       
         shouldTick = DateTime::CompareTime(&Now, &timer);
         if (shouldTick)
-        {                     
-            workTimeDelta -= deltaTime;
+        {                               
             isPumpOn = true;
             digitalWrite(pumpOutput, LOW);
             if (workTimeDelta <= 0)
@@ -380,6 +393,7 @@ void setup() {
     GetDeviceID();
     GetCurrentTimer();
     UpdateDateTime();
+    GetStatusFromServer();
     onSetupTimer.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, 0);
     wasRequestBeforeTimer = DateTime::CompareDayTime(&onSetupTimer, &timer);
     
@@ -399,7 +413,7 @@ void setup() {
     server.onNotFound(NotFound);   
     server.begin(); 
 
-    xTaskCreatePinnedToCore(ReadTemperature, "TempReader", 10000, nullptr, 1, &TemperatureReader, 1);
+    xTaskCreatePinnedToCore(UpdateStatus, "TempReader", 10000, nullptr, 1, &TemperatureReader, 1);
 }
 
 
