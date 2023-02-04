@@ -13,14 +13,19 @@
 #include <Preferences.h>
 #define LOG(X) Serial.println(X)
 
+
+#pragma region Members
+
 const char* localHost = "http://localhost:5289/Devices";
 const char* azureServerDevicesUrl = "https://arduinowebapi.azure-api.net/Devices";
 const char* azureServerTimersUrl = "https://arduinowebapi.azure-api.net/Datetime";
 const char* azureServerBaseUrl = "https://arduinowebapi.azure-api.net/";
 
 StaticJsonDocument<256> doc;
-const char* input;
 DeserializationError err;
+
+const int _measureUpdateRate = 5;
+int measurreUpdateRate = 5;
 
 String weekDays[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
@@ -35,10 +40,10 @@ const int heatSensor = 13;
 int deviceId;
 bool isPumpOn, isLightOn;
 bool isRequestOver = false;
-bool hasTimerBeenSet = false;
-bool isTimerActive;
+bool isTimerOn = false;
+bool lockOut = false;
 bool wasRequestBeforeTimer = false;
-DateTime Now(2022, 10, 10, 12,0,0);
+DateTime Now(2022, 10, 10, 12, 0, 0);
 DateTime timer(2022, 10, 10, 12, 0, 0);
 DateTime onSetupTimer(2022, 10, 10, 12, 0, 0);
 WiFiManager wMan;
@@ -58,14 +63,13 @@ int year, month, day, h, m, s;
 int currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds;
 struct tm* ptm;
 
-int State = 0;
 int temp = 0;
+float ph = 0;
 Preferences prefs;
-
-//add statemachine
-
 TaskHandle_t TemperatureReader;
+#pragma endregion
 
+#pragma region WebServer
 void Restart()
 {
     server.send(200, "text/html", "pump on");
@@ -74,15 +78,14 @@ void Restart()
 
 void GetAllStatus()
 {
-    server.send(200, "text/html", String(String(isPumpOn) + "|" + String(isLightOn) + "|" + String(hasTimerBeenSet)));
+    server.send(200, "text/html", String(String(isPumpOn) + "|" + String(isLightOn) + "|" + String(isTimerOn)));
 }
 
 void PumpOn()
-{    
+{
     digitalWrite(pumpOutput, LOW);
-    server.send(200, "text/html", "pump on");  
+    server.send(200, "text/html", "pump on");
     isPumpOn = true;
-    State = 0; //?
     LOG("on");
 }
 
@@ -92,25 +95,24 @@ void GetTemperature()
 }
 
 void PumpOff()
-{    
+{
     digitalWrite(pumpOutput, HIGH);
     server.send(200, "text/html", "pump off");
     isPumpOn = false;
-    State = 0;
 }
 
 void LightsOn()
 {
     digitalWrite(lightOutput, LOW);
     server.send(200, "text/html", "lighs on");
-    isLightOn = true;   
+    isLightOn = true;
 }
 
 void LightsOff()
 {
     digitalWrite(lightOutput, HIGH);
     server.send(200, "text/html", "lighs off");
-    isLightOn = false; 
+    isLightOn = false;
 }
 
 void OnConnect()
@@ -133,23 +135,17 @@ void NotFound()
     server.send(404, "text/html", "not found");
 }
 
-void UpdateStatus(void* param)
+void SendTimerStatus()
 {
-    //-= delta time?
-    while (true)
-    {
-        refreshRate--;
-        sensors.requestTemperatures();
-        temp = sensors.getTempCByIndex(0);
-        LOG(refreshRate);
-        if (refreshRate <= 0)
-        {
-            GetStatusFromServer();
-        }
-
-        delay(1000);
-    }
+    server.send(200, "text/html", isTimerOn ? "on" : "off");
 }
+
+void SendTemperature()
+{
+    server.send(200, "text/html", String(temp));
+}
+
+#pragma endregion
 
 void GetStatusFromServer()
 {
@@ -161,61 +157,61 @@ void GetStatusFromServer()
     client.addHeader("accept", "application/json");
     client.addHeader("Content-Type", "text/plain");
     auto code = client.GET();  
-
+    String payload = client.getString();        
     if (code > 0)
     {
-        String payload = client.getString();      
         err = deserializeJson(doc, payload);      
-        isPumpOn = doc["isPumpActive"];
-        isLightOn = doc["isLightActive"];
-        isTimerActive = doc["isTimerActive"];
-        workTimeDelta = doc["maxRunTime"];
+        isPumpOn = doc["isPumpOn"];
+        isLightOn = doc["isLightOn"];
+        isTimerOn = doc["isTimerOn"];
         refreshRate = doc["refreshRate"];
-        workTimeDelta *= 60;
-        //sync server
+        temp = doc["temperature"];
+        ph = doc["ph"];
+       
+        if (isTimerOn == 1 && shouldTick)
+        {
+           
+        }  
+        else
+        {
+            workTimeDelta = doc["maxRunTime"];
+            workTimeDelta *= 60;
+        }     
     }
     else
     {
         refreshRate = 3000;
-    }   
+    }    
+    client.end();
+    GetCurrentTimer();
 }
 
-void GetRemainingTime()
-{
-    server.send(200, "text/html", "remTime");
-    HTTPClient client;
-    String requestUrl = azureServerTimersUrl;
-    requestUrl += "/getRemainingTime?deviceId=";
-    requestUrl += deviceId;
-    client.begin(requestUrl);
-    client.addHeader("accept", "application/json");
-    client.addHeader("Content-Type", "text/plain");
-    auto code = client.GET();
-    if (code > 0)
-    {
-        String payload = client.getString();
-        err = deserializeJson(doc, payload); 
-        String d = doc["time"];
-        workTimeDelta = d.toInt() * 60;
-        hasTimerBeenSet = doc["isActive"];                
-        State = hasTimerBeenSet;               
-    } 
-}
+//void GetRemainingTime()
+//{
+//    server.send(200, "text/html", "remTime");
+//    HTTPClient client;
+//    String requestUrl = azureServerTimersUrl;
+//    requestUrl += "/getRemainingTime?deviceId=";
+//    requestUrl += deviceId;
+//    client.begin(requestUrl);
+//    client.addHeader("accept", "application/json");
+//    client.addHeader("Content-Type", "text/plain");
+//    auto code = client.GET();
+//    if (code > 0)
+//    {
+//        String payload = client.getString();
+//        err = deserializeJson(doc, payload);
+//        String d = doc["time"];
+//        workTimeDelta = d.toInt() * 60;
+//        isTimerOn = doc["isActive"];
+//    }
+//    client.end();
+//}
 
-void ToggleTimer()
-{
-    GetRemainingTime();  
-}
-
-void SendTimerStatus()
-{
-    server.send(200, "text/html", hasTimerBeenSet ? "on" : "off");
-}
-
-void SendTemperature()
-{    
-    server.send(200, "text/html", String(temp));
-}
+//void ToggleTimer()
+//{
+//    GetRemainingTime();  
+//}
 
 void GetCurrentTimer()
 {      
@@ -228,22 +224,19 @@ void GetCurrentTimer()
     client.addHeader("accept", "application/json");
     client.addHeader("Content-Type", "text/plain");
     int code = client.GET();
+    String payload = client.getString();                 
     if (code > 0)
     {       
-        String payload = client.getString();                 
         err = deserializeJson(doc, payload);
         year = doc["year"];
         month = doc["month"];
         day = doc["day"];
         h = doc["hour"];
         m = doc["minutes"];
-        s = doc["seconds"];
-        workTimeDelta = doc["lenght"];
-        hasTimerBeenSet = doc["isActive"];
-        workTimeDelta *= 60;      
-        timer.UpdateTime(year, month, day, h, m, s);           
-        State = hasTimerBeenSet;          
+        s = doc["seconds"];           
+        timer.UpdateTime(year, month, day, h, m, s);         
     }
+    client.end();   
 }
 
 void GetNextTimer()
@@ -257,9 +250,11 @@ void GetNextTimer()
     client.addHeader("accept", "application/json");
     client.addHeader("Content-Type", "text/plain");
     auto code = client.GET();
+
+    String payload = client.getString();    
+    //LOG(payload);
     if (code > 0)
     {
-        String payload = client.getString();    
         err = deserializeJson(doc, payload);
         year = doc["year"];
         month = doc["month"];
@@ -267,40 +262,13 @@ void GetNextTimer()
         h = doc["hour"];
         m = doc["minutes"];
         s = doc["seconds"];
-        workTimeDelta = doc["lenght"];
-        hasTimerBeenSet = doc["isActive"];
+        workTimeDelta = doc["workTime"];
+        isTimerOn = doc["isTimerOn"];
         workTimeDelta *= 60;
         timer.UpdateTime(year, month, day, h, m, s);
         wasRequestBeforeTimer = false;              
     }
-}
-
-void UpdateDateTime()
-{
-    timeClient.setTimeOffset(3600);
-    timeClient.update();
-    time_t epochTime = timeClient.getEpochTime();
-    ptm = gmtime((time_t*)&epochTime);
-    monthDay = ptm->tm_mday;
-    currMonth = ptm->tm_mon + 1;
-    currYear = ptm->tm_year + 1900;
-
-    currentHour = timeClient.getHours();
-    currentMinute = timeClient.getMinutes();
-    currentSeconds = timeClient.getSeconds();
-
-    if (currentSeconds != prevSecond)
-    {
-        //add another check here
-        prevSecond = currentSeconds;     
-        if (State == 1 && shouldTick)
-        {
-            workTimeDelta--;
-        }
-    }
-
-    //String weekDay = weekDays[timeClient.getDay()];   
-    Now.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds);
+    client.end();
 }
 
 void GetDeviceID()
@@ -322,6 +290,7 @@ void GetDeviceID()
         prefs.putInt("deviceId", deviceId);
         prefs.end();
     }
+    client.end();
 }
 
 void PostNewDevice()
@@ -345,24 +314,126 @@ void PostNewDevice()
     client.end();
 }
 
+void UpdateDateTime()
+{
+    timeClient.setTimeOffset(3600);
+    timeClient.update();
+    time_t epochTime = timeClient.getEpochTime();
+    ptm = gmtime((time_t*)&epochTime);
+    monthDay = ptm->tm_mday;
+    currMonth = ptm->tm_mon + 1;
+    currYear = ptm->tm_year + 1900;
+
+    currentHour = timeClient.getHours();
+    currentMinute = timeClient.getMinutes();
+    currentSeconds = timeClient.getSeconds();
+
+    if (currentSeconds != prevSecond)
+    {
+        refreshRate--;
+        measurreUpdateRate--;
+        prevSecond = currentSeconds;         
+        if (isTimerOn == 1 && shouldTick)
+        {
+            workTimeDelta--;
+            LOG(workTimeDelta);
+        }
+        if (refreshRate <= 0)
+        {
+            GetStatusFromServer();
+        }
+    }
+
+    //String weekDay = weekDays[timeClient.getDay()];   
+    Now.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds);
+}
+
+void SendMeasuresToServer()
+{
+    StaticJsonDocument<256> pRequestDoc;
+    JsonObject jObj = pRequestDoc.to<JsonObject>();
+    String jResult;
+    jObj["id"] = deviceId;
+    jObj["temp"] = temp;
+    jObj["ph"] = ph;  
+    serializeJson(pRequestDoc, jResult);
+    HTTPClient client;
+    String url = azureServerBaseUrl;
+    url += "Status";
+    url += "/measures";
+    client.begin(url);
+    client.addHeader("accept", "text/plain");
+    client.addHeader("Content-Type", "application/json");
+    int httpCode = client.PUT(jResult);
+    client.end();
+}
+
+void SendStatusToServer()
+{
+    StaticJsonDocument<256> pRequestDoc;
+    JsonObject jObj = pRequestDoc.to<JsonObject>();
+    String jResult;
+    jObj["id"] = deviceId;
+    jObj["temperature"] = temp;
+    jObj["ph"] = ph;
+    jObj["isPumpOn"] = isPumpOn;
+    jObj["isLightOn"] = isLightOn;
+    jObj["isTimerOn"] = isTimerOn;
+    serializeJson(pRequestDoc, jResult);
+    HTTPClient client;
+    String url = azureServerBaseUrl;
+    url += "Status";
+    client.begin(url);
+    client.addHeader("accept", "text/plain");
+    client.addHeader("Content-Type", "application/json");
+    int httpCode = client.PUT(jResult);
+
+    if (httpCode < 0)
+    {
+        isPumpOn = false;
+        isTimerOn = false;
+        workTimeDelta = 0;
+    }
+    client.end();
+}
+
+void UpdateMeasures(void* param)
+{
+    while (true)
+    {      
+        sensors.requestTemperatures();
+        temp = sensors.getTempCByIndex(0);            
+        delay(1000);
+    }
+}
+
 void StateUpdate()
-{  
-    if (State == 1)
-    {       
-        shouldTick = DateTime::CompareTime(&Now, &timer);
+{
+    shouldTick = DateTime::CompareTime(&Now, &timer);
+    if (isTimerOn == 1)
+    {
         if (shouldTick)
-        {                               
+        {
+            if (!lockOut)
+            {
+                lockOut = true;
+                SendStatusToServer();
+                LOG("timer on");
+            }
             isPumpOn = true;
             digitalWrite(pumpOutput, LOW);
             if (workTimeDelta <= 0)
             {
+                LOG("timer off");
                 isPumpOn = false;
-                hasTimerBeenSet = false;
+                SendStatusToServer();
+                lockOut = false;
                 GetNextTimer();
-                digitalWrite(pumpOutput, HIGH);             
-            }            
+                digitalWrite(pumpOutput, HIGH);
+            }
         }
     }
+  
 }
 
 void setup() {
@@ -406,16 +477,15 @@ void setup() {
     server.on("/lightOn", LightsOn);   
     server.on("/lightOff", LightsOff);   
     server.on("/lightStatus", SendLightStatus);
-    server.on("/toggleTimer", ToggleTimer);
+    //server.on("/toggleTimer", ToggleTimer);
     server.on("/timerStatus", SendTimerStatus);
     server.on("/allStatus", GetAllStatus);
     server.on("/restart", Restart);
     server.onNotFound(NotFound);   
     server.begin(); 
 
-    xTaskCreatePinnedToCore(UpdateStatus, "TempReader", 10000, nullptr, 1, &TemperatureReader, 1);
+    xTaskCreatePinnedToCore(UpdateMeasures, "TempReader", 10000, nullptr, 1, &TemperatureReader, 1);
 }
-
 
 void loop() {
 
@@ -423,5 +493,11 @@ void loop() {
     UpdateDateTime();
     server.handleClient();     
     StateUpdate();    
+
+    if (measurreUpdateRate <= 0)
+    {
+        SendMeasuresToServer();
+        measurreUpdateRate = _measureUpdateRate;
+    }
 }
 
