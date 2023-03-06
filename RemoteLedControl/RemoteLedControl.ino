@@ -21,19 +21,19 @@ const char* azureServerBaseUrl = "https://arduinowebapi.azure-api.net/";
 WiFiUDP udp;
 NTPClient timeClient(udp);
 
-//token serialization
-StaticJsonDocument<256> doc;
-DeserializationError err;
-
 //hardware specs
 const int pumpOutput = 4;
-const int lightOutput = 16;
+const int lightOutput = 17;
 const int heatSensor = 13;
+const int consumptionInput = 19;
+bool PumpOn, LightOn, IsPumpManual, IsLightManual;
 int deviceId;
 
 //net connection
 WiFiManager wMan;
 String ssid, pw;
+
+
 
 //timers
 DateTime Now(2022, 10, 10, 12, 0, 0);
@@ -73,19 +73,22 @@ Preferences prefs;
 //should be called with frequency of X
 void GetStatusFromServer()
 {
+    StaticJsonDocument<512> doc;
+    DeserializationError err;
     HTTPClient client;
     String requestUrl = azureServerBaseUrl;
+    requestUrl += "Status";
     requestUrl += "/fullStatus?id=";
     requestUrl += deviceId;
     client.begin(requestUrl);
     client.addHeader("accept", "application/json");
     client.addHeader("Content-Type", "text/plain");
     auto code = client.GET();  
-    String payload = client.getString();        
+    String payload = client.getString();      
+    //LOG(payload);
     if (code > 0)
     {
-        err = deserializeJson(doc, payload);  
-
+        err = deserializeJson(doc, payload);        
         //pump timer
         year = doc["year"];
         month = doc["month"];
@@ -93,7 +96,18 @@ void GetStatusFromServer()
         h = doc["hour"];
         m = doc["minutes"];
         s = doc["seconds"];
-        bool isPumpActive = doc["IsActive"];
+        IsPumpManual = doc["isPumpManual"];
+     
+        if (!IsPumpManual)
+        {
+            workTimeDelta = doc["pumpWorkTime"];
+            workTimeDelta *= 60;           
+        }    
+        else
+        {
+            PumpOn = doc["isActive"];
+            workTimeDelta = 0;
+        }
 
         //light timer
         lYear = doc["lyear"];
@@ -102,18 +116,34 @@ void GetStatusFromServer()
         lh = doc["lhour"];
         lm = doc["lminutes"];
         ls = doc["lseconds"];
-        bool isLightActive = doc["IsLightActive"];
 
+        //IsLightManual = doc["isLightManual"];
+       /* LOG(IsLightManual);
+        if (!IsLightManual)
+        {
+            lightTimerDelta = doc["lightWorkTime"];
+            lightTimerDelta *= 60;
+        }   
+        else
+        {
+            lightTimerDelta = 0;
+            LightOn = doc["isLightActive"];          
+        }*/
+
+        LightOn = doc["isLightActive"];
+
+        //LOG(LightOn);
+
+        refreshRate = doc["refreshRate"];
+           
         pTimer.UpdateTime(year, month, day, h, m, s);
         lTimer.UpdateTime(lYear, lMonth, lDay, lh, lm, ls);
 
-        refreshRate = doc["refreshRate"];           
-        workTimeDelta = isPumpActive? doc["RemainingPumpTime"] * 60 : 0; 
-        lightTimerDelta = isLightActive? doc["RemainingLightTime"] * 60 : 0;
+      
     }
     else
     {
-        refreshRate = 3000;
+        refreshRate = 5;
         workTimeDelta = 0;
         lightTimerDelta = 0;
     }    
@@ -221,7 +251,7 @@ void SendStatusToServer()
     client.addHeader("accept", "text/plain");
     client.addHeader("Content-Type", "application/json");
     int httpCode = client.PUT(jResult);
-    LOG(jResult);    
+    //LOG(jResult);    
     client.end();
 }
 
@@ -242,54 +272,84 @@ void StateUpdate()
 {
     pShouldTick = DateTime::CompareTime(&Now, &pTimer);
     lShouldTick = DateTime::CompareTime(&Now, &lTimer);
-
-
+  
     if (currentSeconds != prevSecond)
     {
         //auto refresh delta
         refreshRate--;
-        measurreUpdateRate--;
-        prevSecond = currentSeconds;
-        //pump toggle
-        if (workTimeDelta > 0 && pShouldTick)
-        {
-            workTimeDelta--;
-            LOG(workTimeDelta);
-            digitalWrite(pumpOutput, LOW);           
-        }
-        else
-        {
-            digitalWrite(pumpOutput, HIGH);
-            if (!wasPumpStatusSent)
+        measurreUpdateRate--;  
+
+       /* int volt = analogRead(consumptionInput);
+        LOG(volt);*/
+        LOG(esp_get_free_heap_size());
+    }
+
+    if (IsPumpManual)
+    {      
+        digitalWrite(pumpOutput, PumpOn? LOW : HIGH);
+    }
+    else
+    {
+        if (currentSeconds != prevSecond)
+        {           
+            //pump toggle                 
+            if (workTimeDelta > 0 && pShouldTick)
             {
-                SendStatusToServer();
-                wasPumpStatusSent = true;
+                workTimeDelta--;
+                LOG("pump on");
+                PumpOn = true;
+                digitalWrite(pumpOutput, LOW);
+            }
+            else
+            {
+                digitalWrite(pumpOutput, HIGH);
+                if (!wasPumpStatusSent)
+                {
+                    LOG("pump off");
+                    PumpOn = false;
+                    SendStatusToServer();
+                    wasPumpStatusSent = true;
+                }
             }
         }
+    }
 
-        //light toggle
-        if (lightTimerDelta > 0 && lShouldTick)
-        {
-            lightTimerDelta--;
-            digitalWrite(lightOutput, LOW);
-        }
-        else
-        {
-            digitalWrite(lightOutput, HIGH);
-            if (!wasLightStatusSent)
-            {
-                SendStatusToServer();
-                wasLightStatusSent = true;
-            }
-        }
-
-        //auto refresh call
+    digitalWrite(lightOutput, LightOn? LOW : HIGH);
+    /*if (IsLightManual)
+    {
+    }*/
+    //else
+    //{
+    //    if (currentSeconds != prevSecond)
+    //    {
+    //        //light toggle
+    //        if (lightTimerDelta > 0 && lShouldTick)
+    //        {
+    //            lightTimerDelta--;
+    //            LightOn = true;
+    //            LOG("light on");
+    //            digitalWrite(lightOutput, LOW);
+    //        }
+    //        else
+    //        {
+    //            digitalWrite(lightOutput, HIGH);
+    //            if (!wasLightStatusSent)
+    //            {
+    //                LOG("light off");
+    //                LightOn = false;
+    //                SendStatusToServer();
+    //                wasLightStatusSent = true;
+    //            }
+    //        }
+    //    }
+    //}
+                           //auto refresh call
         if (refreshRate <= 0)
         {
             GetStatusFromServer();
         }
-    } 
-}
+    prevSecond = currentSeconds;
+} 
 
 void setup() {
    
