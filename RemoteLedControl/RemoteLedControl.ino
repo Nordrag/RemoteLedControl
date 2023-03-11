@@ -280,8 +280,7 @@ void StateUpdate()
         measurreUpdateRate--;  
 
        /* int volt = analogRead(consumptionInput);
-        LOG(volt);*/
-        LOG(esp_get_free_heap_size());
+        LOG(volt);*/      
     }
 
     if (IsPumpManual)
