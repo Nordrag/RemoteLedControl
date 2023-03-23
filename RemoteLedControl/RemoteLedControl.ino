@@ -1,7 +1,7 @@
 #pragma once
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <Arduino.h>
+//#include <Arduino.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
 #include <NTPClient.h>
@@ -11,6 +11,8 @@
 #include <WiFiUdp.h>
 #include <WiFiClientSecure.h>
 #include <Preferences.h>
+#include "States.h"
+#include "StateMachine.h"
 #define LOG(X) Serial.println(X)
 
 #pragma region Members
@@ -26,14 +28,16 @@ const int pumpOutput = 4;
 const int lightOutput = 17;
 const int heatSensor = 13;
 const int consumptionInput = 19;
+const int resetInput = 18;
+const int heatPumpInput = 16;
 bool PumpOn, LightOn, IsPumpManual, IsLightManual;
 int deviceId;
+bool secondsTicked = false;
+bool autoHeat = false;
 
 //net connection
 WiFiManager wMan;
 String ssid, pw;
-
-
 
 //timers
 DateTime Now(2022, 10, 10, 12, 0, 0);
@@ -46,7 +50,6 @@ bool lShouldTick = false;
 
 const int _measureUpdateRate = 5;
 int measurreUpdateRate = 5;
-unsigned long current, old, longDeltaTime;
 int refreshRate = 5;
 int workTimeDelta, lightTimerDelta;
 int year, month, day, h, m, s, lYear, lMonth, lDay, lh,lm,ls;
@@ -61,13 +64,50 @@ int temp = 0;
 float ph = 0;
 TaskHandle_t TemperatureReader;
 
-//lockouts
-bool wasPumpStatusSent = false;
-bool wasLightStatusSent = false;
-
 //persistence
 Preferences prefs;
+
+//statemachine members
+unsigned int MANUAL_STATE;
+unsigned int TIMER_STATE;
+unsigned int OVERRIDE_STATE;
+
+bool inManualState = false;
+bool inTimerState = false;
+bool inOverrideState = false;
+
+ManualState manualState;
+TimerState timerState;
+OverrideState overrideState;
+
+StateMachine stateMachine;
+
+void InitializeStateMachine()
+{
+    MANUAL_STATE = stateMachine.AddState(&manualState);
+    TIMER_STATE = stateMachine.AddState(&timerState);
+    OVERRIDE_STATE = stateMachine.AddState(&overrideState);
+
+    stateMachine.AddAnyTransiton(OVERRIDE_STATE, &inOverrideState);
+
+    stateMachine.AddTransition(MANUAL_STATE, TIMER_STATE, &inTimerState);
+    stateMachine.AddTransition(TIMER_STATE, MANUAL_STATE, &inManualState);
+
+    stateMachine.AddTransition(OVERRIDE_STATE, MANUAL_STATE, &inManualState);
+    stateMachine.AddTransition(OVERRIDE_STATE, TIMER_STATE, &inTimerState);
+
+    stateMachine.SetState(MANUAL_STATE);
+}
+
 #pragma endregion
+
+
+void FactoryReset()
+{
+    prefs.clear();
+    wMan.resetSettings();
+    ESP.restart();
+}
 
 #pragma region New
 //should be called with frequency of X
@@ -76,6 +116,7 @@ void GetStatusFromServer()
     StaticJsonDocument<512> doc;
     DeserializationError err;
     HTTPClient client;
+    client.setTimeout(5000);
     String requestUrl = azureServerBaseUrl;
     requestUrl += "Status";
     requestUrl += "/fullStatus?id=";
@@ -84,10 +125,9 @@ void GetStatusFromServer()
     client.addHeader("accept", "application/json");
     client.addHeader("Content-Type", "text/plain");
     auto code = client.GET();  
-    String payload = client.getString();      
-    //LOG(payload);
+    String payload = client.getString();
     if (code > 0)
-    {
+    {     
         err = deserializeJson(doc, payload);        
         //pump timer
         year = doc["year"];
@@ -137,12 +177,10 @@ void GetStatusFromServer()
         refreshRate = doc["refreshRate"];
            
         pTimer.UpdateTime(year, month, day, h, m, s);
-        lTimer.UpdateTime(lYear, lMonth, lDay, lh, lm, ls);
-
-      
+        lTimer.UpdateTime(lYear, lMonth, lDay, lh, lm, ls);      
     }
     else
-    {
+    {      
         refreshRate = 5;
         workTimeDelta = 0;
         lightTimerDelta = 0;
@@ -211,6 +249,16 @@ void UpdateDateTime()
 
     //String weekDay = weekDays[timeClient.getDay()];   
     Now.UpdateTime(currYear, currMonth, monthDay, currentHour, currentMinute, currentSeconds);
+
+    pShouldTick = DateTime::CompareTime(&Now, &pTimer);
+    lShouldTick = DateTime::CompareTime(&Now, &lTimer);
+
+    if (currentSeconds != prevSecond)
+    {
+        //auto refresh delta
+        refreshRate--;
+        measurreUpdateRate--;
+    }
 }
 
 //send the temp and ph to the server
@@ -251,6 +299,7 @@ void SendStatusToServer()
     client.addHeader("accept", "text/plain");
     client.addHeader("Content-Type", "application/json");
     int httpCode = client.PUT(jResult);
+ 
     //LOG(jResult);    
     client.end();
 }
@@ -262,103 +311,24 @@ void UpdateMeasures(void* param)
     {      
         sensors.requestTemperatures();
         temp = sensors.getTempCByIndex(0);            
-        delay(1000);
+        delay(10000);
     }
 }
 
 #pragma endregion
 
-void StateUpdate()
-{
-    pShouldTick = DateTime::CompareTime(&Now, &pTimer);
-    lShouldTick = DateTime::CompareTime(&Now, &lTimer);
-  
-    if (currentSeconds != prevSecond)
-    {
-        //auto refresh delta
-        refreshRate--;
-        measurreUpdateRate--;  
-
-       /* int volt = analogRead(consumptionInput);
-        LOG(volt);*/      
-    }
-
-    if (IsPumpManual)
-    {      
-        digitalWrite(pumpOutput, PumpOn? LOW : HIGH);
-    }
-    else
-    {
-        if (currentSeconds != prevSecond)
-        {           
-            //pump toggle                 
-            if (workTimeDelta > 0 && pShouldTick)
-            {
-                workTimeDelta--;
-                LOG("pump on");
-                PumpOn = true;
-                digitalWrite(pumpOutput, LOW);
-            }
-            else
-            {
-                digitalWrite(pumpOutput, HIGH);
-                if (!wasPumpStatusSent)
-                {
-                    LOG("pump off");
-                    PumpOn = false;
-                    SendStatusToServer();
-                    wasPumpStatusSent = true;
-                }
-            }
-        }
-    }
-
-    digitalWrite(lightOutput, LightOn? LOW : HIGH);
-    /*if (IsLightManual)
-    {
-    }*/
-    //else
-    //{
-    //    if (currentSeconds != prevSecond)
-    //    {
-    //        //light toggle
-    //        if (lightTimerDelta > 0 && lShouldTick)
-    //        {
-    //            lightTimerDelta--;
-    //            LightOn = true;
-    //            LOG("light on");
-    //            digitalWrite(lightOutput, LOW);
-    //        }
-    //        else
-    //        {
-    //            digitalWrite(lightOutput, HIGH);
-    //            if (!wasLightStatusSent)
-    //            {
-    //                LOG("light off");
-    //                LightOn = false;
-    //                SendStatusToServer();
-    //                wasLightStatusSent = true;
-    //            }
-    //        }
-    //    }
-    //}
-                           //auto refresh call
-        if (refreshRate <= 0)
-        {
-            GetStatusFromServer();
-        }
-    prevSecond = currentSeconds;
-} 
-
 void setup() {
    
+    WiFi.mode(WIFI_STA);
     Serial.begin(115200);  
     pinMode(pumpOutput, OUTPUT);
     pinMode(lightOutput, OUTPUT);
+    pinMode(resetInput, INPUT);
+    pinMode(heatPumpInput, INPUT);
     digitalWrite(pumpOutput, HIGH);
     digitalWrite(lightOutput, HIGH);
+    //digitalWrite(resetInput, LOW);
     bool res = wMan.autoConnect("Waterpump", "password");
-   
    
     prefs.begin("waterpump", false);
     deviceId = prefs.getInt("deviceId", 0);
@@ -373,26 +343,41 @@ void setup() {
         sensors.begin();
     }
       
+    wMan.setWiFiAutoReconnect(true);
     timeClient.begin();
     PostNewDevice();
     GetDeviceID();
     UpdateDateTime();
-    GetStatusFromServer();
-
-    LOG(WiFi.localIP().toString());
+    GetStatusFromServer();  
     xTaskCreatePinnedToCore(UpdateMeasures, "TempReader", 10000, nullptr, 1, &TemperatureReader, 1);
+    InitializeStateMachine();
 }
 
-void loop() {
+void loop()
+{
+     timeClient.update();
+     UpdateDateTime();
+     autoHeat = analogRead(heatPumpInput) == HIGH;
+    
+     if (secondsTicked)
+     {
+         GetStatusFromServer();       
+     }
 
-    timeClient.update();   
-    UpdateDateTime();    
-    StateUpdate();    
+     stateMachine.Update();
 
-    if (measurreUpdateRate <= 0)
-    {
-        SendMeasuresToServer();
-        measurreUpdateRate = _measureUpdateRate;
-    }
+     inManualState = IsPumpManual;
+     inTimerState = !IsPumpManual;
+     inOverrideState = false;
+
+
+     if (measurreUpdateRate <= 0)
+     {
+         SendMeasuresToServer();
+         measurreUpdateRate = _measureUpdateRate;
+     }
+
+     secondsTicked = prevSecond != currentSeconds;   
+     prevSecond = currentSeconds;
+     
 }
-

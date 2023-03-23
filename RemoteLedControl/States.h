@@ -1,94 +1,100 @@
 #pragma once
-#include "Statemachine.h"
-#include "DateTime.h"
+#include "State.h"
+#define LOG(X) Serial.println(X)
 
-
-extern bool isPumpOn, hasTimerBeenSet, wasRequestBeforeTimer;
-extern DateTime Now, timer;
+extern void SendMeasuresToServer();
+extern void SendStatusToServer();
+extern bool PumpOn, LightOn, IsPumpManual, IsLightManual;
+extern bool secondsTicked;
 extern const int pumpOutput;
+extern const int lightOutput;
+extern int workTimeDelta;
+extern int lightTimerDelta;
+extern bool pShouldTick;
 
-extern void GetNextTimer();
+extern bool inManualState;
+extern bool inTimerState;
+extern bool inOverrideState;
 
-class IdleState : public State
+class ManualState : public State
 {
 public:
-	IdleState();
-	~IdleState();
-	void OnEnter();
-	void Update();
-	void OnExit();
+	ManualState() { }
+	~ManualState() { }
 
-private:
+	void OnEnter() override
+	{
+		LOG("manual state");
+	}
+	void OnExit() override
+	{
+		
+	}
+	void Update() override
+	{		
+		digitalWrite(pumpOutput, PumpOn ? LOW : HIGH);
+		digitalWrite(lightOutput, LightOn ? LOW : HIGH);
+	}
 };
-
-IdleState::IdleState() { }
-IdleState::~IdleState() { }
-
-inline void IdleState::OnEnter()
-{
-	Serial.println("entered manual state");
-}
-
-inline void IdleState::Update()
-{
-}
-
-inline void IdleState::OnExit()
-{
-	Serial.println("entered left state");
-}
-//end of manual state
 
 class TimerState : public State
 {
 public:
-	TimerState(float* WorkTime);
-	~TimerState();
-	void OnEnter();
-	void Update();
-	void OnExit();
-private:
-	float workTime;
+	TimerState() { }
+	~TimerState() { }
+
+	void OnEnter() override
+	{
+		LOG("timer state");
+		SendStatusToServer();
+	}
+
+	void OnExit() override
+	{
+		SendStatusToServer();
+	}
+
+	void Update() override
+	{
+		if (secondsTicked)
+		{		
+
+			if (workTimeDelta > 0 && pShouldTick)
+			{
+				workTimeDelta--;
+				PumpOn = true;
+				digitalWrite(pumpOutput, LOW);
+			}
+			else
+			{
+				digitalWrite(pumpOutput, HIGH);
+				PumpOn = false;
+			}
+		}		
+	}
 };
 
-TimerState::TimerState(float* WorkTime) { workTime = *WorkTime; }
-TimerState::~TimerState() { }
-
-inline void TimerState::OnEnter()
+class OverrideState : public State
 {
-	if (workTime > 0)
+public:
+	OverrideState() { }
+	~OverrideState() { }
+
+	void OnEnter() override
 	{
-		isPumpOn = true;
+		LOG("override state");
 	}
-	Serial.println(workTime);
-	Serial.println("entered timer state");
-}
 
-inline void TimerState::Update()
-{
-	workTime -= deltaTime;
-	
-	if (DateTime::CompareTime(&Now, &timer))
+	void OnExit() override
 	{
-		if (!wasRequestBeforeTimer)
-		{
-			workTime -= deltaTime;
-			isPumpOn = true;
-			digitalWrite(pumpOutput, LOW);
-			if (workTime <= 0)
-			{
-				isPumpOn = false;
-				hasTimerBeenSet = false;
-				GetNextTimer();
-				digitalWrite(pumpOutput, HIGH);
-			}
-		}
+		SendStatusToServer();
 	}
-}
 
-inline void TimerState::OnExit()
-{
-	isPumpOn = false;
-	Serial.println("left timer state state");
-	Serial.println(workTime);
-}
+	void Update() override
+	{		
+		digitalWrite(pumpOutput, LOW);
+	}
+};
+
+
+
