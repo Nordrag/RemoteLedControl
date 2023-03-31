@@ -283,14 +283,15 @@ void SendMeasuresToServer()
 }
 
 //sends the activity status to the server
-void SendStatusToServer()
+void SendStatusToServer(bool pump, bool light)
 {
     StaticJsonDocument<256> pRequestDoc;
     JsonObject jObj = pRequestDoc.to<JsonObject>();
     String jResult;
     jObj["id"] = deviceId;   
-    jObj["isPumpOn"] = workTimeDelta > 0;
-    jObj["isLightOn"] = lightTimerDelta > 0;   
+    jObj["isPumpOn"] = pump;
+    jObj["isLightOn"] = light;
+    jObj["heatOverride"] = inOverrideState;
     serializeJson(pRequestDoc, jResult);
     HTTPClient client;
     String url = azureServerBaseUrl;
@@ -311,20 +312,20 @@ void UpdateMeasures(void* param)
     {      
         sensors.requestTemperatures();
         temp = sensors.getTempCByIndex(0);            
-        delay(10000);
+        delay(5000);
     }
 }
 
 #pragma endregion
 
 void setup() {
-   
-    WiFi.mode(WIFI_STA);
+    
     Serial.begin(115200);  
     pinMode(pumpOutput, OUTPUT);
     pinMode(lightOutput, OUTPUT);
     pinMode(resetInput, INPUT);
     pinMode(heatPumpInput, INPUT);
+    digitalWrite(heatPumpInput, HIGH);
     digitalWrite(pumpOutput, HIGH);
     digitalWrite(lightOutput, HIGH);
     //digitalWrite(resetInput, LOW);
@@ -356,11 +357,10 @@ void setup() {
 void loop()
 {
      timeClient.update();
-     UpdateDateTime();
-     autoHeat = analogRead(heatPumpInput) == HIGH;
-    
+     UpdateDateTime();    
+     autoHeat = digitalRead(heatPumpInput) == HIGH;
      if (secondsTicked)
-     {
+     {       
          GetStatusFromServer();       
      }
 
@@ -368,7 +368,7 @@ void loop()
 
      inManualState = IsPumpManual;
      inTimerState = !IsPumpManual;
-     inOverrideState = false;
+     inOverrideState = autoHeat && !IsPumpManual;
 
 
      if (measurreUpdateRate <= 0)

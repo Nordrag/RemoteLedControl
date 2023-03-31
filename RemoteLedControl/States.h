@@ -3,7 +3,8 @@
 #define LOG(X) Serial.println(X)
 
 extern void SendMeasuresToServer();
-extern void SendStatusToServer();
+extern void SendStatusToServer(bool pump, bool light);
+extern void GetStatusFromServer();
 extern bool PumpOn, LightOn, IsPumpManual, IsLightManual;
 extern bool secondsTicked;
 extern const int pumpOutput;
@@ -16,6 +17,8 @@ extern bool inManualState;
 extern bool inTimerState;
 extern bool inOverrideState;
 
+extern const int heatPumpInput;
+
 class ManualState : public State
 {
 public:
@@ -24,11 +27,12 @@ public:
 
 	void OnEnter() override
 	{
+		GetStatusFromServer();
 		LOG("manual state");
 	}
 	void OnExit() override
 	{
-		
+		SendStatusToServer(PumpOn, LightOn);
 	}
 	void Update() override
 	{		
@@ -46,12 +50,13 @@ public:
 	void OnEnter() override
 	{
 		LOG("timer state");
-		SendStatusToServer();
+		SendStatusToServer(PumpOn, LightOn);
 	}
 
 	void OnExit() override
 	{
-		SendStatusToServer();
+		LOG("left timer state");
+		SendStatusToServer(PumpOn, LightOn);
 	}
 
 	void Update() override
@@ -83,11 +88,16 @@ public:
 	void OnEnter() override
 	{
 		LOG("override state");
+		PumpOn = true;
+		SendStatusToServer(PumpOn, LightOn);
 	}
 
 	void OnExit() override
 	{
-		SendStatusToServer();
+		LOG("left override state");	
+		PumpOn = false;
+		digitalWrite(pumpOutput, HIGH);
+		SendStatusToServer(PumpOn, LightOn);
 	}
 
 	void Update() override
