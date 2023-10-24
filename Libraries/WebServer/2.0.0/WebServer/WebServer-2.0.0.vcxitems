@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+  <PropertyGroup Label="Globals" >
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{f69feb3a-70ce-4c43-9fc6-5386f2b66858}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\Parsing.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\WebServer.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\detail\mimetable.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\HTTP_Method.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\Uri.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\WebServer.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\detail\mimetable.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\detail\RequestHandler.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\detail\RequestHandlersImpl.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\uri\UriBraces.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\uri\UriGlob.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\uri\UriRegex.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)keywords.txt" />
+<Text Include="$(MSBuildThisFileDirectory)library.properties" />
+  </ItemGroup>
+  <ItemGroup>
+    
+  </ItemGroup>
+</Project>

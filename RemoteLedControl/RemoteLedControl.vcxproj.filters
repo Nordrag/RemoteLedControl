@@ -42,6 +42,12 @@
     <ClInclude Include="States.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LocalTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WebSiteBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RemoteLedControl.ino" />

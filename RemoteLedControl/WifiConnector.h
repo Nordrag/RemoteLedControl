@@ -1,3 +1,4 @@
+#pragma once
 #include <WiFiManager.h>
 
 #ifndef _WIFICONNECTOR_h

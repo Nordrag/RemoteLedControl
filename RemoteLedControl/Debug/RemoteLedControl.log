@@ -1,0 +1,113 @@
+﻿  NTPClient.cpp
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\Libraries\NTPClient\3.2.1\NTPClient\NTPClient.cpp : warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): warning C4005: 'MBEDTLS_CONFIG_FILE': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): message : 'MBEDTLS_CONFIG_FILE' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): warning C4005: 'IDF_VER': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): message : 'IDF_VER' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): warning C4005: 'ARDUINO_BOARD': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): message : 'ARDUINO_BOARD' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): warning C4005: 'ARDUINO_VARIANT': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): message : 'ARDUINO_VARIANT' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(39,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(42,1): warning C4117: macro name '__cplusplus' is reserved, '#undef' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(43,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(106,1): warning C4005: '__CHAR_BIT__': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(85,1): message : see previous definition of '__CHAR_BIT__'
+C:\Users\ivanb\AppData\Local\arduino15\packages\esp32\tools\xtensa-esp32-elf-gcc\gcc8_4_0-esp-2021r2-patch3\lib\gcc\xtensa-esp32-elf\8.4.0\include\stdint.h(9,1): fatal  error C1021: invalid preprocessor command 'include_next'
+  WiFiManager.cpp
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\Libraries\WiFiManager\2.0.13-beta\WiFiManager\WiFiManager.cpp : warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): warning C4005: 'MBEDTLS_CONFIG_FILE': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): message : 'MBEDTLS_CONFIG_FILE' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): warning C4005: 'IDF_VER': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): message : 'IDF_VER' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): warning C4005: 'ARDUINO_BOARD': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): message : 'ARDUINO_BOARD' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): warning C4005: 'ARDUINO_VARIANT': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): message : 'ARDUINO_VARIANT' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(39,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(42,1): warning C4117: macro name '__cplusplus' is reserved, '#undef' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(43,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(106,1): warning C4005: '__CHAR_BIT__': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(85,1): message : see previous definition of '__CHAR_BIT__'
+C:\Users\ivanb\AppData\Local\arduino15\packages\esp32\tools\xtensa-esp32-elf-gcc\gcc8_4_0-esp-2021r2-patch3\lib\gcc\xtensa-esp32-elf\8.4.0\include\stdint.h(9,1): fatal  error C1021: invalid preprocessor command 'include_next'
+  HTTPClient.cpp
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\Libraries\HTTPClient\2.0.0\HTTPClient\src\HTTPClient.cpp : warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): warning C4005: 'MBEDTLS_CONFIG_FILE': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): message : 'MBEDTLS_CONFIG_FILE' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): warning C4005: 'IDF_VER': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): message : 'IDF_VER' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): warning C4005: 'ARDUINO_BOARD': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): message : 'ARDUINO_BOARD' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): warning C4005: 'ARDUINO_VARIANT': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): message : 'ARDUINO_VARIANT' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(39,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(42,1): warning C4117: macro name '__cplusplus' is reserved, '#undef' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(43,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(106,1): warning C4005: '__CHAR_BIT__': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(85,1): message : see previous definition of '__CHAR_BIT__'
+C:\Users\ivanb\AppData\Local\arduino15\packages\esp32\tools\xtensa-esp32-elf-gcc\gcc8_4_0-esp-2021r2-patch3\lib\gcc\xtensa-esp32-elf\8.4.0\include\stdint.h(9,1): fatal  error C1021: invalid preprocessor command 'include_next'
+  Preferences.cpp
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\Libraries\Preferences\2.0.0\Preferences\src\Preferences.cpp : warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): warning C4005: 'MBEDTLS_CONFIG_FILE': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): message : 'MBEDTLS_CONFIG_FILE' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): warning C4005: 'IDF_VER': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): message : 'IDF_VER' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): warning C4005: 'ARDUINO_BOARD': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): message : 'ARDUINO_BOARD' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): warning C4005: 'ARDUINO_VARIANT': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): message : 'ARDUINO_VARIANT' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(39,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(42,1): warning C4117: macro name '__cplusplus' is reserved, '#undef' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(43,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(106,1): warning C4005: '__CHAR_BIT__': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(85,1): message : see previous definition of '__CHAR_BIT__'
+C:\Users\ivanb\AppData\Local\arduino15\packages\esp32\tools\xtensa-esp32-elf-gcc\gcc8_4_0-esp-2021r2-patch3\lib\gcc\xtensa-esp32-elf\8.4.0\include\stdint.h(9,1): fatal  error C1021: invalid preprocessor command 'include_next'
+  DallasTemperature.cpp
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\Libraries\DallasTemperature\3.9.0\DallasTemperature\DallasTemperature.cpp : warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): warning C4005: 'MBEDTLS_CONFIG_FILE': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): message : 'MBEDTLS_CONFIG_FILE' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): warning C4005: 'IDF_VER': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): message : 'IDF_VER' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): warning C4005: 'ARDUINO_BOARD': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): message : 'ARDUINO_BOARD' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): warning C4005: 'ARDUINO_VARIANT': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): message : 'ARDUINO_VARIANT' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(39,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(42,1): warning C4117: macro name '__cplusplus' is reserved, '#undef' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(43,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(106,1): warning C4005: '__CHAR_BIT__': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(85,1): message : see previous definition of '__CHAR_BIT__'
+C:\Users\ivanb\AppData\Local\arduino15\packages\esp32\tools\xtensa-esp32-elf-gcc\gcc8_4_0-esp-2021r2-patch3\lib\gcc\xtensa-esp32-elf\8.4.0\include\stdint.h(9,1): fatal  error C1021: invalid preprocessor command 'include_next'
+  OneWire.cpp
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\Libraries\OneWire\2.3.7\OneWire\OneWire.cpp : warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): warning C4005: 'MBEDTLS_CONFIG_FILE': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): message : 'MBEDTLS_CONFIG_FILE' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): warning C4005: 'IDF_VER': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): message : 'IDF_VER' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): warning C4005: 'ARDUINO_BOARD': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): message : 'ARDUINO_BOARD' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): warning C4005: 'ARDUINO_VARIANT': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): message : 'ARDUINO_VARIANT' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(39,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(42,1): warning C4117: macro name '__cplusplus' is reserved, '#undef' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(43,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(106,1): warning C4005: '__CHAR_BIT__': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(85,1): message : see previous definition of '__CHAR_BIT__'
+C:\Users\ivanb\AppData\Local\arduino15\packages\esp32\tools\xtensa-esp32-elf-gcc\gcc8_4_0-esp-2021r2-patch3\lib\gcc\xtensa-esp32-elf\8.4.0\include\stdint.h(9,1): fatal  error C1021: invalid preprocessor command 'include_next'
+  RemoteLedControl.ino
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\RemoteLedControl.ino : warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): warning C4005: 'MBEDTLS_CONFIG_FILE': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(20,1): message : 'MBEDTLS_CONFIG_FILE' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): warning C4005: 'IDF_VER': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(24,1): message : 'IDF_VER' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): warning C4005: 'ARDUINO_BOARD': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(31,1): message : 'ARDUINO_BOARD' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): warning C4005: 'ARDUINO_VARIANT': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(32,1): message : 'ARDUINO_VARIANT' previously declared on the command line
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(39,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(42,1): warning C4117: macro name '__cplusplus' is reserved, '#undef' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(43,1): warning C4117: macro name '__cplusplus' is reserved, '#define' ignored
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(106,1): warning C4005: '__CHAR_BIT__': macro redefinition
+C:\Users\ivanb\source\repos\RemoteLedControlCopy\RemoteLedControl\__vm\.RemoteLedControl.vsarduino.h(85,1): message : see previous definition of '__CHAR_BIT__'
+C:\Users\ivanb\AppData\Local\arduino15\packages\esp32\tools\xtensa-esp32-elf-gcc\gcc8_4_0-esp-2021r2-patch3\lib\gcc\xtensa-esp32-elf\8.4.0\include\stdint.h(9,1): fatal  error C1021: invalid preprocessor command 'include_next'
+  Generating Code...

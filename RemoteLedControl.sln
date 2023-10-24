@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DallasTemperature-3.9.0", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OneWire-2.3.7", "Libraries\OneWire\2.3.7\OneWire\OneWire-2.3.7.vcxitems", "{E468AC04-EA3C-4DCC-BE68-B589C277F350}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebServer-2.0.0", "Libraries\WebServer\2.0.0\WebServer\WebServer-2.0.0.vcxitems", "{F69FEB3A-70CE-4C43-9FC6-5386F2B66858}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -47,9 +49,11 @@ Global
 		Libraries\NTPClient\3.2.1\NTPClient\NTPClient-3.2.1.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\OneWire\2.3.7\OneWire\OneWire-2.3.7.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\Preferences\2.0.0\Preferences\Preferences-2.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Libraries\WebServer\2.0.0\WebServer\WebServer-2.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\WiFiManager\2.0.13-beta\WiFiManager\WiFiManager-2.0.13-beta.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\DallasTemperature\3.9.0\DallasTemperature\DallasTemperature-3.9.0.vcxitems*{cf27b744-e657-4ebb-a7c4-ff740a2b5840}*SharedItemsImports = 9
 		Libraries\OneWire\2.3.7\OneWire\OneWire-2.3.7.vcxitems*{e468ac04-ea3c-4dcc-be68-b589c277f350}*SharedItemsImports = 9
+		Libraries\WebServer\2.0.0\WebServer\WebServer-2.0.0.vcxitems*{f69feb3a-70ce-4c43-9fc6-5386f2b66858}*SharedItemsImports = 9
 		Libraries\Preferences\2.0.0\Preferences\Preferences-2.0.0.vcxitems*{fcd9f4a2-5048-4bc7-b8fd-f7280fd41d65}*SharedItemsImports = 9
 	EndGlobalSection
 EndGlobal
